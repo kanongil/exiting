@@ -2,6 +2,8 @@
 
 Safely shutdown [hapi.js](http://hapijs.com/) servers whenever the process exits.
 
+[![Build Status](https://travis-ci.org/kanongil/exiting.svg?branch=master)](https://travis-ci.org/kanongil/exiting)
+
 ## Details
 
 While it is simple to start and stop a server, ensuring proper shutdown on external, or internal,
