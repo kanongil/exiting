@@ -1,0 +1,45 @@
+{
+  "name": "exiting",
+  "version": "0.0.0",
+  "description": "Gracefully stop hapi.js servers",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "lab -a code -t 100 -L",
+    "test-cov-html": "lab -a code -r html -o coverage.html"
+  },
+  "author": "Gil Pedersen <gpdev@gpost.dk>",
+  "license": "BSD-2-Clause",
+  "devDependencies": {
+    "code": "^1.5.0",
+    "hapi": "^9.0.0",
+    "lab": "^5.15.2"
+  },
+  "dependencies": {
+    "hoek": "^2.14.0"
+  },
+  "peerDependencies": {
+    "hapi": "9.x.x"
+  },
+  "directories": {
+    "example": "example",
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kanongil/exiting.git"
+  },
+  "keywords": [
+    "hapi",
+    "manager",
+    "stop",
+    "start",
+    "process",
+    "exit",
+    "signal",
+    "exception"
+  ],
+  "bugs": {
+    "url": "https://github.com/kanongil/exiting/issues"
+  },
+  "homepage": "https://github.com/kanongil/exiting#readme"
+}
