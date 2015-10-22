@@ -11,14 +11,14 @@
   "license": "BSD-2-Clause",
   "devDependencies": {
     "code": "^1.5.0",
-    "hapi": "^9.0.0",
+    "hapi": "^11.0.2",
     "lab": "^6.2.0"
   },
   "dependencies": {
     "hoek": "^2.14.0"
   },
   "peerDependencies": {
-    "hapi": "9.x.x"
+    "hapi": ">=9.0.0"
   },
   "directories": {
     "example": "example",
