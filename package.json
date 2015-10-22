@@ -12,7 +12,7 @@
   "devDependencies": {
     "code": "^1.5.0",
     "hapi": "^9.0.0",
-    "lab": "^5.15.2"
+    "lab": "^6.2.0"
   },
   "dependencies": {
     "hoek": "^2.14.0"

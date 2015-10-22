@@ -18,7 +18,7 @@ server.route({
     }
 });
 
-var manager = new Exiting.Manager(server).start(function (err) {
+/*var manager =*/ new Exiting.Manager(server).start(function (err) {
 
     if (err) {
         throw err;
