@@ -65,7 +65,8 @@ server.route({
     }
 
     console.log('Server started at:', server.info.uri);
-});```
+});
+```
 
 The server and process life-cycle will now be managed by **exiting**.
 
