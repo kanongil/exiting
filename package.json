@@ -10,17 +10,20 @@
   "author": "Gil Pedersen <gpdev@gpost.dk>",
   "license": "BSD-2-Clause",
   "devDependencies": {
-    "code": "^1.5.0",
-    "hapi": "^11.0.2",
-    "lab": "^6.2.0"
+    "code": "^3.0.2",
+    "hapi": "^14.1.0",
+    "lab": "^10.9.0"
   },
   "dependencies": {
-    "hoek": "^2.14.0"
+    "hoek": "^4.0.2"
   },
   "peerDependencies": {
     "hapi": ">=9.0.0"
   },
-  "directories": {
+  "engines": {
+    "node": ">=4.0.0"
+  },
+    "directories": {
     "example": "example",
     "test": "test"
   },

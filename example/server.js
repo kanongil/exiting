@@ -1,10 +1,12 @@
-var Exiting = require('../lib');
-var Hapi = require('hapi');
+'use strict';
 
-var server = new Hapi.Server();
+const Exiting = require('../lib');
+const Hapi = require('hapi');
+
+const server = new Hapi.Server();
 server.connection();
 
-server.on('stop', function () {
+server.on('stop', () => {
 
     console.log('Server stopped.');
 });
@@ -18,7 +20,7 @@ server.route({
     }
 });
 
-/*var manager =*/ new Exiting.Manager(server).start(function (err) {
+/*const manager =*/ new Exiting.Manager(server).start((err) => {
 
     if (err) {
         throw err;

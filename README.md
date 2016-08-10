@@ -38,13 +38,13 @@ and fatal errors that trigger during shutdown.
 Basic server example:
 
 ```js
-var Exiting = require('exiting');
-var Hapi = require('hapi');
+const Exiting = require('../lib');
+const Hapi = require('hapi');
 
-var server = new Hapi.Server();
+const server = new Hapi.Server();
 server.connection();
 
-server.on('stop', function () {
+server.on('stop', () => {
 
     console.log('Server stopped.');
 });
@@ -58,15 +58,14 @@ server.route({
     }
 });
 
-var manager = new Exiting.Manager(server).start(function (err) {
+/*const manager =*/ new Exiting.Manager(server).start((err) => {
 
     if (err) {
         throw err;
     }
 
     console.log('Server started at:', server.info.uri);
-});
-```
+});```
 
 The server and process life-cycle will now be managed by **exiting**.
 
@@ -74,9 +73,9 @@ If you need to delay the shutdown for processing, you can install an extention f
 `onPreStop` or `onPostStop` extension points, eg:
 
 ```js
-server.ext('onPreStop', function (server, next) {
+server.ext('onPreStop', (server, next) => {
 
-    setTimeout(function () {
+    setTimeout(() => {
 
         return next();
     }, 1000);

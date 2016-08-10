@@ -1,37 +1,39 @@
+'use strict';
+
 // Load modules
 
-var Code = require('code');
-var Exiting = require('../lib');
-var Hapi = require('hapi');
-var Hoek = require('hoek');
-var Lab = require('lab');
+const Code = require('code');
+const Exiting = require('../lib');
+const Hapi = require('hapi');
+const Hoek = require('hoek');
+const Lab = require('lab');
 
 
 // Declare internals
 
-var internals = {};
+const internals = {};
 
 
 // Test shortcuts
 
-var lab = exports.lab = Lab.script();
-var describe = lab.describe;
-var it = lab.it;
-var expect = Code.expect;
+const lab = exports.lab = Lab.script();
+const describe = lab.describe;
+const it = lab.it;
+const expect = Code.expect;
 
 
-describe('Manager', function () {
+describe('Manager', () => {
 
-    var processExit = process.exit;
+    const processExit = process.exit;
 
-    lab.before(function (done) {
+    lab.before((done) => {
 
         // Silence log messages
 
-        var log = Exiting.log;
+        const log = Exiting.log;
         Exiting.log = function () {
 
-            var consoleError = console.error;
+            const consoleError = console.error;
             console.error = Hoek.ignore;
             log.apply(Exiting, arguments);
             console.error = consoleError;
@@ -40,30 +42,30 @@ describe('Manager', function () {
         done();
     });
 
-    lab.beforeEach(function (done) {
+    lab.beforeEach((done) => {
 
         Exiting.reset();
         done();
     });
 
-    lab.afterEach(function (done) {
+    lab.afterEach((done) => {
 
         process.exit = processExit;
         done();
     });
 
-    it('creates new object', function (done) {
+    it('creates new object', (done) => {
 
-        var manager = Exiting.Manager({});
+        const manager = Exiting.Manager({});
         expect(manager).to.exist();
         expect(manager).to.be.an.instanceof(Exiting.Manager);
         done();
     });
 
-    it('requires a start callback', function (done) {
+    it('requires a start callback', (done) => {
 
-        var manager = Exiting.Manager({});
-        var start = function () {
+        const manager = Exiting.Manager({});
+        const start = () => {
 
             manager.start();
         };
@@ -71,18 +73,18 @@ describe('Manager', function () {
         done();
     });
 
-    it('can start and stop without exiting', function (done) {
+    it('can start and stop without exiting', (done) => {
 
-        var server = new Hapi.Server();
+        const server = new Hapi.Server();
         server.connection();
 
-        var manager = new Exiting.Manager(server).start(function (err) {
+        const manager = new Exiting.Manager(server).start((err) => {
 
             expect(err).to.not.exist();
 
-            setImmediate(function () {
+            setImmediate(() => {
 
-                manager.stop(function (err) {
+                manager.stop((err) => {
 
                     expect(err).to.not.exist();
                     done();
@@ -91,28 +93,28 @@ describe('Manager', function () {
         });
     });
 
-    it('can restart server', function (done) {
+    it('can restart server', (done) => {
 
-        process.exit = function (code) {
+        process.exit = (code) => {
 
             expect(code).to.equal(0);
             expect(manager.state).to.equal('stopped');
             done();
         };
 
-        var server = new Hapi.Server();
+        const server = new Hapi.Server();
         server.connection();
 
-        var manager = new Exiting.Manager(server).start(function (err) {
+        const manager = new Exiting.Manager(server).start((err) => {
 
             expect(err).to.not.exist();
 
-            setImmediate(function () {
+            setImmediate(() => {
 
-                manager.stop(function (err) {
+                manager.stop((err) => {
 
                     expect(err).to.not.exist();
-                    manager.start(function (err) {
+                    manager.start((err) => {
 
                         expect(err).to.not.exist();
                         process.exit(0);
@@ -122,17 +124,17 @@ describe('Manager', function () {
         });
     });
 
-    it('requires a stop callback', function (done) {
+    it('requires a stop callback', (done) => {
 
-        var server = new Hapi.Server();
+        const server = new Hapi.Server();
         server.connection();
 
-        var stop = function () {
+        const stop = () => {
 
             manager.stop();
         };
 
-        var manager = new Exiting.Manager(server).start(function (err) {
+        const manager = new Exiting.Manager(server).start((err) => {
 
             expect(err).to.not.exist();
             expect(stop).to.throw('Missing required stop callback function');
@@ -140,15 +142,15 @@ describe('Manager', function () {
         });
     });
 
-    it('supports stop options', function (done) {
+    it('supports stop options', (done) => {
 
-        var server = new Hapi.Server();
+        const server = new Hapi.Server();
         server.connection();
 
-        var manager = new Exiting.Manager(server).start(function (err) {
+        const manager = new Exiting.Manager(server).start((err) => {
 
             expect(err).to.not.exist();
-            manager.stop({ timeout: 5 }, function (err) {
+            manager.stop({ timeout: 5 }, (err) => {
 
                 expect(err).to.not.exist();
                 done();
@@ -156,22 +158,22 @@ describe('Manager', function () {
         });
     });
 
-    it('alerts on unknown exit', function (done) {
+    it('alerts on unknown exit', (done) => {
 
-        var server = new Hapi.Server();
+        const server = new Hapi.Server();
         server.connection();
 
-        var manager = new Exiting.Manager(server).start(function (err) {
+        const manager = new Exiting.Manager(server).start((err) => {
 
             expect(err).to.not.exist();
 
-            var log = Exiting.log;
-            Exiting.log = function (message) {
+            const log = Exiting.log;
+            Exiting.log = (message) => {
 
                 Exiting.log = log;
 
                 expect(message).to.equal('Process exiting without stopping server (state == started)');
-                manager.stop(function (err) {
+                manager.stop((err) => {
 
                     expect(err).to.not.exist();
                     done();
@@ -184,11 +186,11 @@ describe('Manager', function () {
         });
     });
 
-    describe('exits gracefully', function () {
+    describe('exits gracefully', () => {
 
-        it('on process.exit with code 0', function (done) {
+        it('on process.exit with code 0', (done) => {
 
-            process.exit = function (code) {
+            process.exit = (code) => {
 
                 process.emit('exit', code);
 
@@ -197,55 +199,55 @@ describe('Manager', function () {
                 done();
             };
 
-            var server = new Hapi.Server();
+            const server = new Hapi.Server();
             server.connection();
 
-            var manager = new Exiting.Manager(server).start(function (err) {
+            const manager = new Exiting.Manager(server).start((err) => {
 
                 expect(err).to.not.exist();
 
-                setImmediate(function () {
+                setImmediate(() => {
 
                     process.exit(0);
                 });
             });
         });
 
-        it('while starting', function (done) {
+        it('while starting', (done) => {
 
-            process.exit = function (code) {
+            process.exit = (code) => {
 
                 expect(code).to.equal(0);
                 expect(manager.state).to.equal('stopped');
                 done();
             };
 
-            var server = new Hapi.Server();
+            const server = new Hapi.Server();
             server.connection();
 
-            var manager = new Exiting.Manager(server).start(Hoek.ignore);
+            const manager = new Exiting.Manager(server).start(Hoek.ignore);
 
             process.exit(0);
             process.exit(0);
         });
 
-        it('on double exit', function (done) {
+        it('on double exit', (done) => {
 
-            process.exit = function (code) {
+            process.exit = (code) => {
 
                 expect(code).to.equal(0);
                 expect(manager.state).to.equal('stopped');
                 done();
             };
 
-            var server = new Hapi.Server();
+            const server = new Hapi.Server();
             server.connection();
 
-            var manager = new Exiting.Manager(server).start(function (err) {
+            const manager = new Exiting.Manager(server).start((err) => {
 
                 expect(err).to.not.exist();
 
-                setImmediate(function () {
+                setImmediate(() => {
 
                     process.exit(0);
                     process.exit(0);
@@ -253,28 +255,28 @@ describe('Manager', function () {
             });
         });
 
-        it('on double exit with preStop delay', function (done) {
+        it('on double exit with preStop delay', (done) => {
 
-            process.exit = function (code) {
+            process.exit = (code) => {
 
                 expect(code).to.equal(0);
                 expect(manager.state).to.equal('stopped');
                 done();
             };
 
-            var server = new Hapi.Server();
+            const server = new Hapi.Server();
             server.connection();
 
-            server.ext('onPreStop', function (server1, next) {
+            server.ext('onPreStop', (server1, next) => {
 
                 return setImmediate(next);
             });
 
-            var manager = new Exiting.Manager(server).start(function (err) {
+            const manager = new Exiting.Manager(server).start((err) => {
 
                 expect(err).to.not.exist();
 
-                setImmediate(function () {
+                setImmediate(() => {
 
                     process.exit(0);
                     process.exit(0);
@@ -282,19 +284,19 @@ describe('Manager', function () {
             });
         });
 
-        it('on SIGINT', function (done) {
+        it('on SIGINT', (done) => {
 
-            process.exit = function (code) {
+            process.exit = (code) => {
 
                 expect(code).to.equal(0);
                 expect(manager.state).to.equal('stopped');
                 done();
             };
 
-            var server = new Hapi.Server();
+            const server = new Hapi.Server();
             server.connection();
 
-            var manager = new Exiting.Manager(server).start(function (err) {
+            const manager = new Exiting.Manager(server).start((err) => {
 
                 expect(err).to.not.exist();
 
@@ -302,19 +304,19 @@ describe('Manager', function () {
             });
         });
 
-        it('on SIGQUIT', function (done) {
+        it('on SIGQUIT', (done) => {
 
-            process.exit = function (code) {
+            process.exit = (code) => {
 
                 expect(code).to.equal(0);
                 expect(manager.state).to.equal('stopped');
                 done();
             };
 
-            var server = new Hapi.Server();
+            const server = new Hapi.Server();
             server.connection();
 
-            var manager = new Exiting.Manager(server).start(function (err) {
+            const manager = new Exiting.Manager(server).start((err) => {
 
                 expect(err).to.not.exist();
 
@@ -322,19 +324,19 @@ describe('Manager', function () {
             });
         });
 
-        it('on SIGTERM', function (done) {
+        it('on SIGTERM', (done) => {
 
-            process.exit = function (code) {
+            process.exit = (code) => {
 
                 expect(code).to.equal(0);
                 expect(manager.state).to.equal('stopped');
                 done();
             };
 
-            var server = new Hapi.Server();
+            const server = new Hapi.Server();
             server.connection();
 
-            var manager = new Exiting.Manager(server).start(function (err) {
+            const manager = new Exiting.Manager(server).start((err) => {
 
                 expect(err).to.not.exist();
 
@@ -343,11 +345,11 @@ describe('Manager', function () {
         });
     });
 
-    describe('aborts', function () {
+    describe('aborts', () => {
 
-        it('on process.exit with non-zero exit code', function (done) {
+        it('on process.exit with non-zero exit code', (done) => {
 
-            process.exit = function (code) {
+            process.exit = (code) => {
 
                 process.emit('exit', code);
 
@@ -356,33 +358,33 @@ describe('Manager', function () {
                 done();
             };
 
-            var server = new Hapi.Server();
+            const server = new Hapi.Server();
             server.connection();
 
-            var manager = new Exiting.Manager(server).start(function (err) {
+            const manager = new Exiting.Manager(server).start((err) => {
 
                 expect(err).to.not.exist();
 
-                setImmediate(function () {
+                setImmediate(() => {
 
                     process.exit(10);
                 });
             });
         });
 
-        it('on thrown errors', function (done) {
+        it('on thrown errors', (done) => {
 
-            process.exit = function (code) {
+            process.exit = (code) => {
 
                 expect(code).to.equal(255);
                 expect(manager.state).to.equal('errored');
                 done();
             };
 
-            var server = new Hapi.Server();
+            const server = new Hapi.Server();
             server.connection();
 
-            var manager = new Exiting.Manager(server).start(function (err) {
+            const manager = new Exiting.Manager(server).start((err) => {
 
                 expect(err).to.not.exist();
 
@@ -392,19 +394,19 @@ describe('Manager', function () {
             });
         });
 
-        it('on non-error throw', function (done) {
+        it('on non-error throw', (done) => {
 
-            process.exit = function (code) {
+            process.exit = (code) => {
 
                 expect(code).to.equal(255);
                 expect(manager.state).to.equal('errored');
                 done();
             };
 
-            var server = new Hapi.Server();
+            const server = new Hapi.Server();
             server.connection();
 
-            var manager = new Exiting.Manager(server).start(function (err) {
+            const manager = new Exiting.Manager(server).start((err) => {
 
                 expect(err).to.not.exist();
 
@@ -412,19 +414,19 @@ describe('Manager', function () {
             });
         });
 
-        it('on "undefined" throw', function (done) {
+        it('on "undefined" throw', (done) => {
 
-            process.exit = function (code) {
+            process.exit = (code) => {
 
                 expect(code).to.equal(255);
                 expect(manager.state).to.equal('errored');
                 done();
             };
 
-            var server = new Hapi.Server();
+            const server = new Hapi.Server();
             server.connection();
 
-            var manager = new Exiting.Manager(server).start(function (err) {
+            const manager = new Exiting.Manager(server).start((err) => {
 
                 expect(err).to.not.exist();
 
@@ -432,24 +434,24 @@ describe('Manager', function () {
             });
         });
 
-        it('on thrown errors while prestopping', function (done) {
+        it('on thrown errors while prestopping', (done) => {
 
-            process.exit = function (code) {
+            process.exit = (code) => {
 
                 expect(code).to.equal(255);
                 expect(manager.state).to.equal('errored');
                 done();
             };
 
-            var server = new Hapi.Server();
+            const server = new Hapi.Server();
             server.connection();
 
-            server.ext('onPreStop', function (server1, next) {
+            server.ext('onPreStop', (server1, next) => {
 
                 process.emit('uncaughtException', new Error('fail'));
             });
 
-            var manager = new Exiting.Manager(server).start(function (err) {
+            const manager = new Exiting.Manager(server).start((err) => {
 
                 expect(err).to.not.exist();
 
@@ -457,24 +459,24 @@ describe('Manager', function () {
             });
         });
 
-        it('on thrown errors while poststopping', function (done) {
+        it('on thrown errors while poststopping', (done) => {
 
-            process.exit = function (code) {
+            process.exit = (code) => {
 
                 expect(code).to.equal(255);
                 expect(manager.state).to.equal('errored');
                 done();
             };
 
-            var server = new Hapi.Server();
+            const server = new Hapi.Server();
             server.connection();
 
-            server.ext('onPostStop', function (server1, next) {
+            server.ext('onPostStop', (server1, next) => {
 
                 process.emit('uncaughtException', new Error('fail'));
             });
 
-            var manager = new Exiting.Manager(server).start(function (err) {
+            const manager = new Exiting.Manager(server).start((err) => {
 
                 expect(err).to.not.exist();
 
@@ -482,19 +484,19 @@ describe('Manager', function () {
             });
         });
 
-        it('on SIGHUP', function (done) {
+        it('on SIGHUP', (done) => {
 
-            process.exit = function (code) {
+            process.exit = (code) => {
 
                 expect(code).to.equal(1);
                 expect(manager.state).to.equal('errored');
                 done();
             };
 
-            var server = new Hapi.Server();
+            const server = new Hapi.Server();
             server.connection();
 
-            var manager = new Exiting.Manager(server).start(function (err) {
+            const manager = new Exiting.Manager(server).start((err) => {
 
                 expect(err).to.not.exist();
 
@@ -502,44 +504,44 @@ describe('Manager', function () {
             });
         });
 
-        it('on server "close"', function (done) {
+        it('on server "close"', (done) => {
 
-            process.exit = function (code) {
+            process.exit = (code) => {
 
                 expect(code).to.equal(255);
                 expect(manager.state).to.equal('errored');
                 done();
             };
 
-            var server = new Hapi.Server();
+            const server = new Hapi.Server();
             server.connection();
 
-            var manager = new Exiting.Manager(server).start(function (err) {
+            const manager = new Exiting.Manager(server).start((err) => {
 
                 expect(err).to.not.exist();
 
-                process.nextTick(function () {
+                process.nextTick(() => {
 
                     server.listener.close();
                 });
             });
         });
 
-        it('on exit timeout', function (done) {
+        it('on exit timeout', (done) => {
 
-            process.exit = function (code) {
+            process.exit = (code) => {
 
                 expect(code).to.equal(255);
                 expect(manager.state).to.equal('timeout');
                 Exiting.reset(); // reset immediately so we don't see double exits
             };
 
-            var server = new Hapi.Server();
+            const server = new Hapi.Server();
             server.connection();
 
-            server.ext('onPreStop', function (srv, next) {
+            server.ext('onPreStop', (srv, next) => {
 
-                setTimeout(function () {
+                setTimeout(() => {
 
                     expect(manager.state).to.equal('timeout');
                     next();
@@ -547,7 +549,7 @@ describe('Manager', function () {
                 }, 100);
             });
 
-            var manager = new Exiting.Manager(server, { exitTimeout: 1 }).start(function (err) {
+            const manager = new Exiting.Manager(server, { exitTimeout: 1 }).start((err) => {
 
                 expect(err).to.not.exist();
 
