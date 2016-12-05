@@ -10,9 +10,9 @@
   "author": "Gil Pedersen <gpdev@gpost.dk>",
   "license": "BSD-2-Clause",
   "devDependencies": {
-    "code": "^3.0.2",
+    "code": "^4.0.0",
     "hapi": "^14.1.0",
-    "lab": "^10.9.0"
+    "lab": "^11.2.1"
   },
   "dependencies": {
     "hoek": "^4.0.2"
