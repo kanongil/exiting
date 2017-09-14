@@ -571,7 +571,6 @@ describe('Manager', () => {
 
             process.on('SIGHUP', () => {
 
-                console.log(manager.state);
                 expect(manager.state).to.equal('started');
                 process.exit(0);
             });
