@@ -557,4 +557,35 @@ describe('Manager', () => {
             });
         });
     });
+
+    describe('allows SIGHUP', () => {
+
+        it('to be handled if a listener exists', (done) => {
+
+            process.exit = (code) => {
+
+                // we're just cleaning up here as the
+                // process.exit is not part of this test
+                done();
+            };
+
+            process.on('SIGHUP', () => {
+
+                console.log('SIGHUP received');
+                console.log(manager.state);
+                expect(manager.state).to.equal('started');
+                process.exit(0);
+            });
+
+            const server = new Hapi.Server();
+            server.connection();
+
+            const manager = new Exiting.Manager(server).start((err) => {
+
+                expect(err).to.not.exist();
+
+                process.emit('SIGHUP');
+            });
+        });
+    });
 });
