@@ -25,6 +25,9 @@ The exit triggers are handled as detailed:
    * `SIGHUP` kill signal (code `1`).
    * Any uncaught exception (code `255`).
    * Any closed connection listeners, eg. on worker disconnect (code `255`).
+* Non-exit conditions:
+  * if there is a `SIGHUP` listener registered by your application, `exiting` allows you to handle it and doesn't do anything.
+  * NOTE: ensure your `SIGHUP` handler function's name is not `abort` or `graceful`, as these are reserved names for internal `exiting` functions.
 
 If the server shutdown is too slow, a timeout will eventually trigger an exit (exit code `255`).
 
