@@ -504,6 +504,33 @@ describe('Manager', () => {
             });
         });
 
+        it('on SIGHUP when external listener named "abort" exists', (done) => {
+
+            const abort = function abort() {
+
+                // nothing to do here
+            };
+
+            process.on('SIGHUP', abort);
+
+            process.exit = (code) => {
+
+                expect(code).to.equal(1);
+                expect(manager.state).to.equal('errored');
+                done();
+            };
+
+            const server = new Hapi.Server();
+            server.connection();
+
+            const manager = new Exiting.Manager(server).start((err) => {
+
+                expect(err).to.not.exist();
+
+                process.emit('SIGHUP');
+            });
+        });
+
         it('on server "close"', (done) => {
 
             process.exit = (code) => {
@@ -554,6 +581,36 @@ describe('Manager', () => {
                 expect(err).to.not.exist();
 
                 process.exit(0);
+            });
+        });
+    });
+
+    describe('allows SIGHUP', () => {
+
+        it('to be handled if a listener exists', (done) => {
+
+            process.removeAllListeners('SIGHUP');
+
+            process.exit = (code) => {
+
+                expect(manager.state).to.equal('stopped');
+                done();
+            };
+
+            process.on('SIGHUP', () => {
+
+                expect(manager.state).to.equal('started');
+                process.exit(0);
+            });
+
+            const server = new Hapi.Server();
+            server.connection();
+
+            const manager = new Exiting.Manager(server).start((err) => {
+
+                expect(err).to.not.exist();
+
+                process.emit('SIGHUP');
             });
         });
     });
