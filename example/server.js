@@ -4,27 +4,27 @@ const Exiting = require('../lib');
 const Hapi = require('hapi');
 
 const server = new Hapi.Server();
-server.connection();
+const manager = new Exiting.Manager(server);
 
-server.on('stop', () => {
+server.events.on('stop', () => {
 
     console.log('Server stopped.');
 });
 
-server.route({
-    method: 'GET',
-    path: '/',
-    handler: function (request, reply) {
+const provision = async () => {
 
-        return reply('Hello');
-    }
-});
+    server.route({
+        method: 'GET',
+        path: '/',
+        handler() {
 
-/*const manager =*/ new Exiting.Manager(server).start((err) => {
+            return 'Hello';
+        }
+    });
 
-    if (err) {
-        throw err;
-    }
+    await manager.start();
 
     console.log('Server started at:', server.info.uri);
-});
+};
+
+provision();

@@ -26,7 +26,22 @@ describe('Manager', () => {
 
     const processExit = process.exit;
 
-    lab.before((done) => {
+    const grabExit = (manager, emit) => {
+
+        return new Promise((resolve) => {
+
+            process.exit = (code) => {
+
+                if (emit) {
+                    process.emit('exit', code);
+                }
+
+                resolve({ code, state: manager.state });
+            };
+        });
+    };
+
+    lab.before(async () => {
 
         // Silence log messages
 
@@ -38,523 +53,400 @@ describe('Manager', () => {
             log.apply(Exiting, arguments);
             console.error = consoleError;
         };
-
-        done();
     });
 
-    lab.beforeEach((done) => {
+    lab.beforeEach(async () => {
 
         Exiting.reset();
-        done();
     });
 
-    lab.afterEach((done) => {
+    lab.afterEach(async () => {
 
         process.exit = processExit;
-        done();
     });
 
-    it('creates new object', (done) => {
+    it('creates new object', async () => {
 
         const manager = Exiting.Manager({});
         expect(manager).to.exist();
         expect(manager).to.be.an.instanceof(Exiting.Manager);
-        done();
     });
 
-    it('requires a start callback', (done) => {
-
-        const manager = Exiting.Manager({});
-        const start = () => {
-
-            manager.start();
-        };
-        expect(start).to.throw('Missing required start callback function');
-        done();
-    });
-
-    it('can start and stop without exiting', (done) => {
+    it('can start and stop without exiting', async () => {
 
         const server = new Hapi.Server();
-        server.connection();
+        const manager = new Exiting.Manager(server);
 
-        const manager = new Exiting.Manager(server).start((err) => {
-
-            expect(err).to.not.exist();
-
-            setImmediate(() => {
-
-                manager.stop((err) => {
-
-                    expect(err).to.not.exist();
-                    done();
-                });
-            });
-        });
+        await manager.start();
+        await Hoek.wait(0);
+        await manager.stop();
     });
 
-    it('can restart server', (done) => {
-
-        process.exit = (code) => {
-
-            expect(code).to.equal(0);
-            expect(manager.state).to.equal('stopped');
-            done();
-        };
+    it('can restart server', async () => {
 
         const server = new Hapi.Server();
-        server.connection();
+        const manager = new Exiting.Manager(server);
+        const exited = grabExit(manager);
 
-        const manager = new Exiting.Manager(server).start((err) => {
+        await manager.start();
+        await Hoek.wait(0);
+        await manager.stop();
 
-            expect(err).to.not.exist();
+        await manager.start();
 
-            setImmediate(() => {
+        process.exit(0);
 
-                manager.stop((err) => {
-
-                    expect(err).to.not.exist();
-                    manager.start((err) => {
-
-                        expect(err).to.not.exist();
-                        process.exit(0);
-                    });
-                });
-            });
-        });
+        const { code, state } = await exited;
+        expect(state).to.equal('stopped');
+        expect(code).to.equal(0);
     });
 
-    it('requires a stop callback', (done) => {
+    it('supports stop options', async () => {
 
         const server = new Hapi.Server();
-        server.connection();
+        const manager = new Exiting.Manager(server);
 
-        const stop = () => {
-
-            manager.stop();
-        };
-
-        const manager = new Exiting.Manager(server).start((err) => {
-
-            expect(err).to.not.exist();
-            expect(stop).to.throw('Missing required stop callback function');
-            done();
-        });
+        await manager.start();
+        await manager.stop({ timeout: 5 });
     });
 
-    it('supports stop options', (done) => {
+    it('alerts on unknown exit', async () => {
 
         const server = new Hapi.Server();
-        server.connection();
+        const manager = new Exiting.Manager(server);
 
-        const manager = new Exiting.Manager(server).start((err) => {
+        await manager.start();
 
-            expect(err).to.not.exist();
-            manager.stop({ timeout: 5 }, (err) => {
-
-                expect(err).to.not.exist();
-                done();
-            });
-        });
-    });
-
-    it('alerts on unknown exit', (done) => {
-
-        const server = new Hapi.Server();
-        server.connection();
-
-        const manager = new Exiting.Manager(server).start((err) => {
-
-            expect(err).to.not.exist();
+        const logged = new Promise((resolve) => {
 
             const log = Exiting.log;
             Exiting.log = (message) => {
 
                 Exiting.log = log;
-
-                expect(message).to.equal('Process exiting without stopping server (state == started)');
-                manager.stop((err) => {
-
-                    expect(err).to.not.exist();
-                    done();
-                });
+                resolve(message);
             };
-
-            // Fake a spurious process "exit" event
-
-            process.emit('exit', 0);
         });
+
+        // Fake a spurious process "exit" event
+
+        process.emit('exit', 0);
+
+        expect(await logged).to.equal('Process exiting without stopping server (state == started)');
+        await manager.stop();
+    });
+
+    it('forwards start rejections', async () => {
+
+        const server = new Hapi.Server();
+        const manager = new Exiting.Manager(server);
+
+        server.ext('onPreStart', () => {
+
+            throw new Error('start fail');
+        });
+
+        await expect(manager.start()).to.reject(Error, 'start fail');
+    });
+
+    it('cancels exit when reset', async () => {
+
+        const server = new Hapi.Server();
+        const manager = new Exiting.Manager(server);
+
+        server.ext('onPreStop', () => {
+
+            Exiting.reset();
+        });
+
+        await manager.start();
+        await manager.stop();
+    });
+
+    it('cancels exit when reset after close', async () => {
+
+        const server = new Hapi.Server();
+        const manager = new Exiting.Manager(server);
+
+        server.ext('onPostStop', () => {
+
+            Exiting.reset();
+        });
+
+        await manager.start();
+        process.exit(0);
     });
 
     describe('exits gracefully', () => {
 
-        it('on process.exit with code 0', (done) => {
-
-            process.exit = (code) => {
-
-                process.emit('exit', code);
-
-                expect(code).to.equal(0);
-                expect(manager.state).to.equal('stopped');
-                done();
-            };
+        it('on process.exit with code 0', async () => {
 
             const server = new Hapi.Server();
-            server.connection();
+            const manager = new Exiting.Manager(server);
+            const exited = grabExit(manager, true);
 
-            const manager = new Exiting.Manager(server).start((err) => {
+            await manager.start();
+            await Hoek.wait(0);
+            process.exit(0);
 
-                expect(err).to.not.exist();
-
-                setImmediate(() => {
-
-                    process.exit(0);
-                });
-            });
+            const { code, state } = await exited;
+            expect(state).to.equal('stopped');
+            expect(code).to.equal(0);
         });
 
-        it('while starting', (done) => {
-
-            process.exit = (code) => {
-
-                expect(code).to.equal(0);
-                expect(manager.state).to.equal('stopped');
-                done();
-            };
+        it('while starting', async () => {
 
             const server = new Hapi.Server();
-            server.connection();
+            const manager = new Exiting.Manager(server);
+            const exited = grabExit(manager);
 
-            const manager = new Exiting.Manager(server).start(Hoek.ignore);
+            manager.start();     // No await here
 
             process.exit(0);
             process.exit(0);
+
+            const { code, state } = await exited;
+            expect(state).to.equal('stopped');
+            expect(code).to.equal(0);
         });
 
-        it('on double exit', (done) => {
-
-            process.exit = (code) => {
-
-                expect(code).to.equal(0);
-                expect(manager.state).to.equal('stopped');
-                done();
-            };
+        it('on double exit', async () => {
 
             const server = new Hapi.Server();
-            server.connection();
+            const manager = new Exiting.Manager(server);
+            const exited = grabExit(manager);
 
-            const manager = new Exiting.Manager(server).start((err) => {
+            await manager.start();
+            await Hoek.wait(0);
+            process.exit(0);
+            process.exit(0);
 
-                expect(err).to.not.exist();
-
-                setImmediate(() => {
-
-                    process.exit(0);
-                    process.exit(0);
-                });
-            });
+            const { code, state } = await exited;
+            expect(state).to.equal('stopped');
+            expect(code).to.equal(0);
         });
 
-        it('on double exit with preStop delay', (done) => {
-
-            process.exit = (code) => {
-
-                expect(code).to.equal(0);
-                expect(manager.state).to.equal('stopped');
-                done();
-            };
+        it('on double exit with preStop delay', async () => {
 
             const server = new Hapi.Server();
-            server.connection();
+            const manager = new Exiting.Manager(server);
+            const exited = grabExit(manager);
 
-            server.ext('onPreStop', (server1, next) => {
+            server.ext('onPreStop', async () => {
 
-                return setImmediate(next);
+                await Hoek.wait(0);
             });
 
-            const manager = new Exiting.Manager(server).start((err) => {
+            await manager.start();
+            await Hoek.wait(0);
+            process.exit(0);
+            process.exit(0);
 
-                expect(err).to.not.exist();
-
-                setImmediate(() => {
-
-                    process.exit(0);
-                    process.exit(0);
-                });
-            });
+            const { code, state } = await exited;
+            expect(state).to.equal('stopped');
+            expect(code).to.equal(0);
         });
 
-        it('on SIGINT', (done) => {
-
-            process.exit = (code) => {
-
-                expect(code).to.equal(0);
-                expect(manager.state).to.equal('stopped');
-                done();
-            };
+        it('on SIGINT', async () => {
 
             const server = new Hapi.Server();
-            server.connection();
+            const manager = new Exiting.Manager(server);
+            const exited = grabExit(manager);
 
-            const manager = new Exiting.Manager(server).start((err) => {
+            await manager.start();
+            process.kill(process.pid, 'SIGINT');
 
-                expect(err).to.not.exist();
-
-                process.kill(process.pid, 'SIGINT');
-            });
+            const { code, state } = await exited;
+            expect(state).to.equal('stopped');
+            expect(code).to.equal(0);
         });
 
-        it('on SIGQUIT', (done) => {
-
-            process.exit = (code) => {
-
-                expect(code).to.equal(0);
-                expect(manager.state).to.equal('stopped');
-                done();
-            };
+        it('on SIGQUIT', async () => {
 
             const server = new Hapi.Server();
-            server.connection();
+            const manager = new Exiting.Manager(server);
+            const exited = grabExit(manager);
 
-            const manager = new Exiting.Manager(server).start((err) => {
+            await manager.start();
+            process.kill(process.pid, 'SIGQUIT');
 
-                expect(err).to.not.exist();
-
-                process.kill(process.pid, 'SIGQUIT');
-            });
+            const { code, state } = await exited;
+            expect(state).to.equal('stopped');
+            expect(code).to.equal(0);
         });
 
-        it('on SIGTERM', (done) => {
-
-            process.exit = (code) => {
-
-                expect(code).to.equal(0);
-                expect(manager.state).to.equal('stopped');
-                done();
-            };
+        it('on SIGTERM', async () => {
 
             const server = new Hapi.Server();
-            server.connection();
+            const manager = new Exiting.Manager(server);
+            const exited = grabExit(manager);
 
-            const manager = new Exiting.Manager(server).start((err) => {
+            await manager.start();
+            process.kill(process.pid, 'SIGTERM');
 
-                expect(err).to.not.exist();
-
-                process.kill(process.pid, 'SIGTERM');
-            });
+            const { code, state } = await exited;
+            expect(state).to.equal('stopped');
+            expect(code).to.equal(0);
         });
     });
 
     describe('aborts', () => {
 
-        it('on process.exit with non-zero exit code', (done) => {
-
-            process.exit = (code) => {
-
-                process.emit('exit', code);
-
-                expect(code).to.equal(10);
-                expect(manager.state).to.equal('errored');
-                done();
-            };
+        it('on process.exit with non-zero exit code', async () => {
 
             const server = new Hapi.Server();
-            server.connection();
+            const manager = new Exiting.Manager(server);
+            const exited = grabExit(manager, true);
 
-            const manager = new Exiting.Manager(server).start((err) => {
+            await manager.start();
+            await Hoek.wait(0);
+            process.exit(10);
 
-                expect(err).to.not.exist();
-
-                setImmediate(() => {
-
-                    process.exit(10);
-                });
-            });
+            const { code, state } = await exited;
+            expect(state).to.equal('errored');
+            expect(code).to.equal(10);
         });
 
-        it('on thrown errors', (done) => {
-
-            process.exit = (code) => {
-
-                expect(code).to.equal(255);
-                expect(manager.state).to.equal('errored');
-                done();
-            };
+        it('on thrown errors', async () => {
 
             const server = new Hapi.Server();
-            server.connection();
+            const manager = new Exiting.Manager(server);
+            const exited = grabExit(manager, true);
 
-            const manager = new Exiting.Manager(server).start((err) => {
+            await manager.start();
 
-                expect(err).to.not.exist();
+            // Immitate a throw by faking an uncaughtException
 
-                // Immitate a throw by faking an uncaughtException
+            process.emit('uncaughtException', new Error('fail'));
 
-                process.emit('uncaughtException', new Error('fail'));
-            });
+            const { code, state } = await exited;
+            expect(state).to.equal('errored');
+            expect(code).to.equal(255);
         });
 
-        it('on non-error throw', (done) => {
-
-            process.exit = (code) => {
-
-                expect(code).to.equal(255);
-                expect(manager.state).to.equal('errored');
-                done();
-            };
+        it('on non-error throw', async () => {
 
             const server = new Hapi.Server();
-            server.connection();
+            const manager = new Exiting.Manager(server);
+            const exited = grabExit(manager, true);
 
-            const manager = new Exiting.Manager(server).start((err) => {
+            await manager.start();
 
-                expect(err).to.not.exist();
+            // Immitate a throw by faking an uncaughtException
 
-                process.emit('uncaughtException', 10);
-            });
+            process.emit('uncaughtException', 10);
+
+            const { code, state } = await exited;
+            expect(state).to.equal('errored');
+            expect(code).to.equal(255);
         });
 
-        it('on "undefined" throw', (done) => {
-
-            process.exit = (code) => {
-
-                expect(code).to.equal(255);
-                expect(manager.state).to.equal('errored');
-                done();
-            };
+        it('on "undefined" throw', async () => {
 
             const server = new Hapi.Server();
-            server.connection();
+            const manager = new Exiting.Manager(server);
+            const exited = grabExit(manager, true);
 
-            const manager = new Exiting.Manager(server).start((err) => {
+            await manager.start();
 
-                expect(err).to.not.exist();
+            // Immitate a throw by faking an uncaughtException
 
-                process.emit('uncaughtException', undefined);
-            });
+            process.emit('uncaughtException', undefined);
+
+            const { code, state } = await exited;
+            expect(state).to.equal('errored');
+            expect(code).to.equal(255);
         });
 
-        it('on thrown errors while prestopping', (done) => {
-
-            process.exit = (code) => {
-
-                expect(code).to.equal(255);
-                expect(manager.state).to.equal('errored');
-                done();
-            };
+        it('on thrown errors while prestopping', async () => {
 
             const server = new Hapi.Server();
-            server.connection();
+            const manager = new Exiting.Manager(server);
+            const exited = grabExit(manager, true);
 
-            server.ext('onPreStop', (server1, next) => {
+            server.ext('onPreStop', () => {
 
                 process.emit('uncaughtException', new Error('fail'));
             });
 
-            const manager = new Exiting.Manager(server).start((err) => {
+            await manager.start();
+            manager.stop();          // No await
 
-                expect(err).to.not.exist();
-
-                manager.stop(Hoek.ignore);
-            });
+            const { code, state } = await exited;
+            expect(state).to.equal('errored');
+            expect(code).to.equal(255);
         });
 
-        it('on thrown errors while poststopping', (done) => {
-
-            process.exit = (code) => {
-
-                expect(code).to.equal(255);
-                expect(manager.state).to.equal('errored');
-                done();
-            };
+        it('on thrown errors while poststopping', async () => {
 
             const server = new Hapi.Server();
-            server.connection();
+            const manager = new Exiting.Manager(server);
+            const exited = grabExit(manager, true);
 
-            server.ext('onPostStop', (server1, next) => {
+            server.ext('onPostStop', () => {
 
                 process.emit('uncaughtException', new Error('fail'));
             });
 
-            const manager = new Exiting.Manager(server).start((err) => {
+            await manager.start();
+            manager.stop();          // No await
 
-                expect(err).to.not.exist();
-
-                manager.stop(Hoek.ignore);
-            });
+            const { code, state } = await exited;
+            expect(state).to.equal('errored');
+            expect(code).to.equal(255);
         });
 
-        it('on SIGHUP', (done) => {
-
-            process.exit = (code) => {
-
-                expect(code).to.equal(1);
-                expect(manager.state).to.equal('errored');
-                done();
-            };
+        it('on SIGHUP', async () => {
 
             const server = new Hapi.Server();
-            server.connection();
+            const manager = new Exiting.Manager(server);
+            const exited = grabExit(manager, true);
 
-            const manager = new Exiting.Manager(server).start((err) => {
+            await manager.start();
+            process.kill(process.pid, 'SIGHUP');
 
-                expect(err).to.not.exist();
-
-                process.kill(process.pid, 'SIGHUP');
-            });
+            const { code, state } = await exited;
+            expect(state).to.equal('errored');
+            expect(code).to.equal(1);
         });
 
-        it('on server "close"', (done) => {
-
-            process.exit = (code) => {
-
-                expect(code).to.equal(255);
-                expect(manager.state).to.equal('errored');
-                done();
-            };
+        it('on server "close"', async () => {
 
             const server = new Hapi.Server();
-            server.connection();
+            const manager = new Exiting.Manager(server);
+            const exited = grabExit(manager, true);
 
-            const manager = new Exiting.Manager(server).start((err) => {
+            await manager.start();
+            server.listener.close();
 
-                expect(err).to.not.exist();
-
-                process.nextTick(() => {
-
-                    server.listener.close();
-                });
-            });
+            const { code, state } = await exited;
+            expect(state).to.equal('errored');
+            expect(code).to.equal(255);
         });
 
-        it('on exit timeout', (done) => {
-
-            process.exit = (code) => {
-
-                expect(code).to.equal(255);
-                expect(manager.state).to.equal('timeout');
-                Exiting.reset(); // reset immediately so we don't see double exits
-            };
+        it('on exit timeout', async () => {
 
             const server = new Hapi.Server();
-            server.connection();
+            const manager = new Exiting.Manager(server, { exitTimeout: 1 });
+            const exited = grabExit(manager, true);
 
-            server.ext('onPreStop', (srv, next) => {
+            const preStopped = new Promise((resolve) => {
 
-                setTimeout(() => {
+                server.ext('onPreStop', async () => {
 
+                    await Hoek.wait(100);
+                    resolve(manager.state);
                     expect(manager.state).to.equal('timeout');
-                    next();
-                    done();
-                }, 100);
+                });
             });
 
-            const manager = new Exiting.Manager(server, { exitTimeout: 1 }).start((err) => {
+            await manager.start();
+            process.exit(0);
 
-                expect(err).to.not.exist();
+            const { code, state } = await exited;
+            expect(state).to.equal('timeout');
+            expect(code).to.equal(255);
 
-                process.exit(0);
-            });
+            expect(await preStopped).to.equal('timeout');
         });
     });
 });

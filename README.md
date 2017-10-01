@@ -38,34 +38,34 @@ and fatal errors that trigger during shutdown.
 Basic server example:
 
 ```js
-const Exiting = require('../lib');
 const Hapi = require('hapi');
+const Exiting = require('exiting);
 
 const server = new Hapi.Server();
-server.connection();
+const manager = new Exiting.Manager(server);
 
-server.on('stop', () => {
+server.events.on('stop', () => {
 
     console.log('Server stopped.');
 });
 
-server.route({
-    method: 'GET',
-    path: '/',
-    handler: function (request, reply) {
+const provision = async () => {
 
-        return reply('Hello');
-    }
-});
+    server.route({
+        method: 'GET',
+        path: '/',
+        handler() {
 
-/*const manager =*/ new Exiting.Manager(server).start((err) => {
+            return 'Hello';
+        }
+    });
 
-    if (err) {
-        throw err;
-    }
+    await manager.start();
 
     console.log('Server started at:', server.info.uri);
-});
+};
+
+provision();
 ```
 
 The server and process life-cycle will now be managed by **exiting**.
@@ -74,12 +74,12 @@ If you need to delay the shutdown for processing, you can install an extention f
 `onPreStop` or `onPostStop` extension points, eg:
 
 ```js
-server.ext('onPreStop', (server, next) => {
+server.ext('onPreStop', () => {
 
-    setTimeout(() => {
+    return new Promise((resolve) => {
 
-        return next();
-    }, 1000);
+        setTimeout(resolve, 1000);
+    });
 });
 ```
 
@@ -97,13 +97,13 @@ Create a new exit manager for a hapi.js server. The `options` object supports:
 
  * `exitTimeout` - When exiting, force process exit after this amount of ms has elapsed. Default: `5000`.
 
-### manager.start(callback)
+### manager.start()
 
 Starts the manager and the server, as if `server.start()` is called.
 
 Note that `process.exit()` is monkey patched to intercept such calls.
 Starting also installs the signal handlers and an `uncaughtException` handler.
 
-### manager.stop([options], callback)
+### manager.stop([options])
 
 Stops the manager and the server, as if `server.stop()` is called.
