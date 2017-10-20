@@ -39,7 +39,7 @@ Basic server example:
 
 ```js
 const Hapi = require('hapi');
-const Exiting = require('exiting);
+const Exiting = require('exiting');
 
 const server = Hapi.Server();
 const manager = Exiting.createManager(server);
