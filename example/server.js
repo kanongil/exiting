@@ -3,8 +3,8 @@
 const Exiting = require('../lib');
 const Hapi = require('hapi');
 
-const server = new Hapi.Server();
-const manager = new Exiting.Manager(server);
+const server = Hapi.Server();
+const manager = Exiting.createManager(server);
 
 server.events.on('stop', () => {
 

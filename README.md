@@ -41,8 +41,8 @@ Basic server example:
 const Hapi = require('hapi');
 const Exiting = require('exiting);
 
-const server = new Hapi.Server();
-const manager = new Exiting.Manager(server);
+const server = Hapi.Server();
+const manager = Exiting.createManager(server);
 
 server.events.on('stop', () => {
 
@@ -89,15 +89,15 @@ Install using npm: `npm install exiting`.
 
 ## Usage
 
-To enable **exiting** for you server, replace the call to `server.start()` with `new Exiting.Manager(server).start()`.
+To enable **exiting** for you server, replace the call to `server.start()` with `Exiting.createManager(server).start()`.
 
-### new Exiting.Manager(server, [options])
+### Exiting.createManager(server, [options])
 
 Create a new exit manager for a hapi.js server. The `options` object supports:
 
  * `exitTimeout` - When exiting, force process exit after this amount of ms has elapsed. Default: `5000`.
 
-### manager.start()
+### await manager.start()
 
 Starts the manager and the server, as if `server.start()` is called.
 

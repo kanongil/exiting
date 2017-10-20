@@ -17,8 +17,7 @@ const internals = {};
 // Test shortcuts
 
 const lab = exports.lab = Lab.script();
-const describe = lab.describe;
-const it = lab.it;
+const { describe, it } = lab;
 const expect = Code.expect;
 
 
@@ -67,15 +66,14 @@ describe('Manager', () => {
 
     it('creates new object', async () => {
 
-        const manager = Exiting.Manager({});
+        const manager = Exiting.createManager({});
         expect(manager).to.exist();
         expect(manager).to.be.an.instanceof(Exiting.Manager);
     });
 
     it('can start and stop without exiting', async () => {
 
-        const server = new Hapi.Server();
-        const manager = new Exiting.Manager(server);
+        const manager = Exiting.createManager(Hapi.Server());
 
         await manager.start();
         await Hoek.wait(0);
@@ -84,8 +82,7 @@ describe('Manager', () => {
 
     it('can restart server', async () => {
 
-        const server = new Hapi.Server();
-        const manager = new Exiting.Manager(server);
+        const manager = Exiting.createManager(Hapi.Server());
         const exited = grabExit(manager);
 
         await manager.start();
@@ -103,8 +100,7 @@ describe('Manager', () => {
 
     it('supports stop options', async () => {
 
-        const server = new Hapi.Server();
-        const manager = new Exiting.Manager(server);
+        const manager = Exiting.createManager(Hapi.Server());
 
         await manager.start();
         await manager.stop({ timeout: 5 });
@@ -112,8 +108,7 @@ describe('Manager', () => {
 
     it('alerts on unknown exit', async () => {
 
-        const server = new Hapi.Server();
-        const manager = new Exiting.Manager(server);
+        const manager = Exiting.createManager(Hapi.Server());
 
         await manager.start();
 
@@ -180,8 +175,7 @@ describe('Manager', () => {
 
         it('on process.exit with code 0', async () => {
 
-            const server = new Hapi.Server();
-            const manager = new Exiting.Manager(server);
+            const manager = Exiting.createManager(Hapi.Server());
             const exited = grabExit(manager, true);
 
             await manager.start();
@@ -195,8 +189,7 @@ describe('Manager', () => {
 
         it('while starting', async () => {
 
-            const server = new Hapi.Server();
-            const manager = new Exiting.Manager(server);
+            const manager = Exiting.createManager(Hapi.Server());
             const exited = grabExit(manager);
 
             manager.start();     // No await here
@@ -211,8 +204,7 @@ describe('Manager', () => {
 
         it('on double exit', async () => {
 
-            const server = new Hapi.Server();
-            const manager = new Exiting.Manager(server);
+            const manager = Exiting.createManager(Hapi.Server());
             const exited = grabExit(manager);
 
             await manager.start();
@@ -248,8 +240,7 @@ describe('Manager', () => {
 
         it('on SIGINT', async () => {
 
-            const server = new Hapi.Server();
-            const manager = new Exiting.Manager(server);
+            const manager = Exiting.createManager(Hapi.Server());
             const exited = grabExit(manager);
 
             await manager.start();
@@ -262,8 +253,7 @@ describe('Manager', () => {
 
         it('on SIGQUIT', async () => {
 
-            const server = new Hapi.Server();
-            const manager = new Exiting.Manager(server);
+            const manager = Exiting.createManager(Hapi.Server());
             const exited = grabExit(manager);
 
             await manager.start();
@@ -276,8 +266,7 @@ describe('Manager', () => {
 
         it('on SIGTERM', async () => {
 
-            const server = new Hapi.Server();
-            const manager = new Exiting.Manager(server);
+            const manager = Exiting.createManager(Hapi.Server());
             const exited = grabExit(manager);
 
             await manager.start();
@@ -293,8 +282,7 @@ describe('Manager', () => {
 
         it('on process.exit with non-zero exit code', async () => {
 
-            const server = new Hapi.Server();
-            const manager = new Exiting.Manager(server);
+            const manager = Exiting.createManager(Hapi.Server());
             const exited = grabExit(manager, true);
 
             await manager.start();
@@ -308,8 +296,7 @@ describe('Manager', () => {
 
         it('on thrown errors', async () => {
 
-            const server = new Hapi.Server();
-            const manager = new Exiting.Manager(server);
+            const manager = Exiting.createManager(Hapi.Server());
             const exited = grabExit(manager, true);
 
             await manager.start();
@@ -325,8 +312,7 @@ describe('Manager', () => {
 
         it('on non-error throw', async () => {
 
-            const server = new Hapi.Server();
-            const manager = new Exiting.Manager(server);
+            const manager = Exiting.createManager(Hapi.Server());
             const exited = grabExit(manager, true);
 
             await manager.start();
@@ -342,8 +328,7 @@ describe('Manager', () => {
 
         it('on "undefined" throw', async () => {
 
-            const server = new Hapi.Server();
-            const manager = new Exiting.Manager(server);
+            const manager = Exiting.createManager(Hapi.Server());
             const exited = grabExit(manager, true);
 
             await manager.start();
@@ -397,8 +382,7 @@ describe('Manager', () => {
 
         it('on SIGHUP', async () => {
 
-            const server = new Hapi.Server();
-            const manager = new Exiting.Manager(server);
+            const manager = Exiting.createManager(Hapi.Server());
             const exited = grabExit(manager, true);
 
             await manager.start();

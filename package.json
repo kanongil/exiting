@@ -11,7 +11,7 @@
   "license": "BSD-2-Clause",
   "devDependencies": {
     "code": "^5.1.0",
-    "hapi": "^17.0.0-rc1",
+    "hapi": "^17.0.0-rc8",
     "lab": "^14.3.1"
   },
   "dependencies": {
@@ -35,7 +35,8 @@
     "process",
     "exit",
     "signal",
-    "exception"
+    "exception",
+    "shutdown"
   ],
   "bugs": {
     "url": "https://github.com/kanongil/exiting/issues"
