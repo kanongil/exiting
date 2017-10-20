@@ -202,6 +202,50 @@ describe('Manager', () => {
         expect(code).to.equal(0);
     });
 
+    it('does not exit for registered signal handlers', async () => {
+
+        const sigint = new Promise((resolve) => {
+
+            process.once('SIGINT', resolve);
+        });
+
+        const manager = Exiting.createManager(Hapi.Server());
+
+        await manager.start();
+
+        setImmediate(() => {
+
+            process.kill(process.pid, 'SIGINT');
+        });
+
+        await sigint;
+        await Hoek.wait(1);
+
+        expect(manager.state).to.equal('started');
+    });
+
+    it('does not exit for registered aborting signal handlers', async () => {
+
+        const sighub = new Promise((resolve) => {
+
+            process.once('SIGHUP', resolve);
+        });
+
+        const manager = Exiting.createManager(Hapi.Server());
+
+        await manager.start();
+
+        setImmediate(() => {
+
+            process.kill(process.pid, 'SIGHUP');
+        });
+
+        await sighub;
+        await Hoek.wait(1);
+
+        expect(manager.state).to.equal('started');
+    });
+
     describe('exits gracefully', () => {
 
         it('on process.exit with code 0', async () => {

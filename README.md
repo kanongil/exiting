@@ -17,12 +17,12 @@ The exit triggers are handled as detailed:
 
  * Graceful exit with code `0`:
    * `process.exit()` with exit code `0`.
-   * `SIGINT` kill signal, through eg. `ctrl-c`.
-   * `SIGTERM` kill signal.
-   * `SIGQUIT` kill signal.
+   * Unhandled `SIGINT` kill signal, through eg. `ctrl-c`.
+   * Unhandled `SIGTERM` kill signal.
+   * Unhandled `SIGQUIT` kill signal.
  * Aborted exit:
    * `process.exit()` with non-zero exit code.
-   * `SIGHUP` kill signal (code `1`).
+   * Unhandled `SIGHUP` kill signal (code `1`).
    * Any uncaught exception (code `255`).
    * Any closed connection listeners, eg. on worker disconnect (code `255`).
 
