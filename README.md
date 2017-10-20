@@ -89,7 +89,8 @@ Install using npm: `npm install exiting`.
 
 ## Usage
 
-To enable **exiting** for you server, replace the call to `server.start()` with `Exiting.createManager(server).start()`.
+To enable **exiting** for you server, replace the call to `server.start()` with
+`Exiting.createManager(server).start()`.
 
 ### Exiting.createManager(server, [options])
 
@@ -104,6 +105,6 @@ Starts the manager and the server, as if `server.start()` is called.
 Note that `process.exit()` is monkey patched to intercept such calls.
 Starting also installs the signal handlers and an `uncaughtException` handler.
 
-### manager.stop([options])
+### await manager.stop([options])
 
 Stops the manager and the server, as if `server.stop()` is called.
