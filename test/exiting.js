@@ -27,7 +27,7 @@ describe('Manager', () => {
 
     const grabExit = (manager, emit) => {
 
-        return new Promise((resolve) => {
+        const promise = new Promise((resolve) => {
 
             process.exit = (code) => {
 
@@ -38,6 +38,22 @@ describe('Manager', () => {
                 resolve({ code, state: manager.state });
             };
         });
+
+        promise.exit = (code) => {
+
+            try {
+                process.exit(code);
+            }
+            catch (err) {
+                if (!(err instanceof Exiting.ProcessExitError)) {
+                    throw err;
+                }
+            }
+
+            return promise;
+        };
+
+        return promise;
     };
 
     lab.before(async () => {
@@ -91,9 +107,7 @@ describe('Manager', () => {
 
         await manager.start();
 
-        process.exit(0);
-
-        const { code, state } = await exited;
+        const { code, state } = await exited.exit(0);
         expect(state).to.equal('stopped');
         expect(code).to.equal(0);
     });
@@ -161,6 +175,7 @@ describe('Manager', () => {
 
         const server = new Hapi.Server();
         const manager = new Exiting.Manager(server);
+        const exited = grabExit(manager);
 
         server.ext('onPostStop', () => {
 
@@ -168,7 +183,23 @@ describe('Manager', () => {
         });
 
         await manager.start();
-        process.exit(0);
+        exited.exit(0);
+    });
+
+    it('uncaughtException handler ignores ProcessExitErrors', async () => {
+
+        const manager = Exiting.createManager(Hapi.Server());
+        const exited = grabExit(manager, true);
+
+        await manager.start();
+
+        // Immitate a throw by faking an uncaughtException
+
+        process.emit('uncaughtException', new Exiting.ProcessExitError());
+
+        const { code, state } = await exited.exit(0);
+        expect(state).to.equal('stopped');
+        expect(code).to.equal(0);
     });
 
     describe('exits gracefully', () => {
@@ -180,9 +211,8 @@ describe('Manager', () => {
 
             await manager.start();
             await Hoek.wait(0);
-            process.exit(0);
 
-            const { code, state } = await exited;
+            const { code, state } = await exited.exit(0);
             expect(state).to.equal('stopped');
             expect(code).to.equal(0);
         });
@@ -194,8 +224,8 @@ describe('Manager', () => {
 
             manager.start();     // No await here
 
-            process.exit(0);
-            process.exit(0);
+            exited.exit(0);
+            exited.exit(0);
 
             const { code, state } = await exited;
             expect(state).to.equal('stopped');
@@ -209,8 +239,8 @@ describe('Manager', () => {
 
             await manager.start();
             await Hoek.wait(0);
-            process.exit(0);
-            process.exit(0);
+            exited.exit(0);
+            exited.exit(0);
 
             const { code, state } = await exited;
             expect(state).to.equal('stopped');
@@ -230,8 +260,8 @@ describe('Manager', () => {
 
             await manager.start();
             await Hoek.wait(0);
-            process.exit(0);
-            process.exit(0);
+            exited.exit(0);
+            exited.exit(0);
 
             const { code, state } = await exited;
             expect(state).to.equal('stopped');
@@ -287,9 +317,8 @@ describe('Manager', () => {
 
             await manager.start();
             await Hoek.wait(0);
-            process.exit(10);
 
-            const { code, state } = await exited;
+            const { code, state } = await exited.exit(10);
             expect(state).to.equal('errored');
             expect(code).to.equal(10);
         });
@@ -424,9 +453,8 @@ describe('Manager', () => {
             });
 
             await manager.start();
-            process.exit(0);
 
-            const { code, state } = await exited;
+            const { code, state } = await exited.exit(0);
             expect(state).to.equal('timeout');
             expect(code).to.equal(255);
 

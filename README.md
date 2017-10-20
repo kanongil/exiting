@@ -108,3 +108,32 @@ Starting also installs the signal handlers and an `uncaughtException` handler.
 ### await manager.stop([options])
 
 Stops the manager and the server, as if `server.stop()` is called.
+
+## Notes on process.exit()
+
+The `process.exit()` method is handled in a special manner that allows the asyncronous stop
+logic to resolve before actually exiting. Since this can be called from anywhere in the code,
+and subsequent code is never expected to be executed, the manager will throw an
+`Exiting.ProcessExitError` to attempt to escape the current execution context. This allows
+something like the following to still exit:
+
+```js
+while (true) {
+    process.exit(1);
+}
+```
+
+This might not always work, and the server can potentially lock up instead of exiting.
+Eg. with this code:
+
+```js
+try {
+    process.exit(1);
+}
+catch (err) {
+    /* do nothing */
+}
+while (true) {}
+```
+
+You should avoid using `process.exit()` in your own code, and call `manager.stop()` instead.
