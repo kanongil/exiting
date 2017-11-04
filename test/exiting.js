@@ -56,7 +56,7 @@ describe('Manager', () => {
         return promise;
     };
 
-    lab.before(async () => {
+    lab.before(() => {
 
         // Silence log messages
 
@@ -70,17 +70,17 @@ describe('Manager', () => {
         };
     });
 
-    lab.beforeEach(async () => {
+    lab.beforeEach(() => {
 
         Exiting.reset();
     });
 
-    lab.afterEach(async () => {
+    lab.afterEach(() => {
 
         process.exit = processExit;
     });
 
-    it('creates new object', async () => {
+    it('creates new object', () => {
 
         const manager = Exiting.createManager({});
         expect(manager).to.exist();
@@ -187,6 +187,8 @@ describe('Manager', () => {
     });
 
     it('uncaughtException handler ignores ProcessExitErrors', async () => {
+
+        process.removeAllListeners('uncaughtException');         // Disable lab integration
 
         const manager = Exiting.createManager(Hapi.Server());
         const exited = grabExit(manager, true);
@@ -369,6 +371,8 @@ describe('Manager', () => {
 
         it('on thrown errors', async () => {
 
+            process.removeAllListeners('uncaughtException');         // Disable lab integration
+
             const manager = Exiting.createManager(Hapi.Server());
             const exited = grabExit(manager, true);
 
@@ -384,6 +388,8 @@ describe('Manager', () => {
         });
 
         it('on non-error throw', async () => {
+
+            process.removeAllListeners('uncaughtException');         // Disable lab integration
 
             const manager = Exiting.createManager(Hapi.Server());
             const exited = grabExit(manager, true);
@@ -401,6 +407,8 @@ describe('Manager', () => {
 
         it('on "undefined" throw', async () => {
 
+            process.removeAllListeners('uncaughtException');         // Disable lab integration
+
             const manager = Exiting.createManager(Hapi.Server());
             const exited = grabExit(manager, true);
 
@@ -416,6 +424,8 @@ describe('Manager', () => {
         });
 
         it('on thrown errors while prestopping', async () => {
+
+            process.removeAllListeners('uncaughtException');         // Disable lab integration
 
             const server = new Hapi.Server();
             const manager = new Exiting.Manager(server);
@@ -435,6 +445,8 @@ describe('Manager', () => {
         });
 
         it('on thrown errors while poststopping', async () => {
+
+            process.removeAllListeners('uncaughtException');         // Disable lab integration
 
             const server = new Hapi.Server();
             const manager = new Exiting.Manager(server);

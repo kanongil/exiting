@@ -11,17 +11,17 @@
   "license": "BSD-2-Clause",
   "devDependencies": {
     "code": "^5.1.0",
-    "hapi": "^17.0.0-rc8",
-    "lab": "^14.3.1"
+    "hapi": "^17.0.0",
+    "lab": "^15.0.0"
   },
   "dependencies": {
     "hoek": "^5.0.0"
   },
   "peerDependencies": {
-    "hapi": ">=17.0.0-0"
+    "hapi": ">=17.0.0"
   },
   "engines": {
-    "node": ">=8.0.0"
+    "node": ">=8.9.0"
   },
   "repository": {
     "type": "git",
