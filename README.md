@@ -8,10 +8,10 @@ Safely shutdown [hapi.js](http://hapijs.com/) servers whenever the process exits
 
 While it is simple to start and stop a server, ensuring proper shutdown on external, or internal,
 triggers can be cumbersome to handle properly.
-**exiting** makes this easy by managing your Hapi server, taking care of starting and stopping it
-as appropriate.
+**exiting** makes this easy by managing your Hapi servers, taking care of starting and stopping 
+them as appropriate.
 
-Depending on the exit trigger, the server will either be gracefully stopped or aborted (by only
+Depending on the exit trigger, the hapi servers will either be gracefully stopped or aborted (by only
 triggering `onPreStop` hooks).
 The exit triggers are handled as detailed:
 
@@ -26,7 +26,7 @@ The exit triggers are handled as detailed:
    * Any uncaught exception (code `255`).
    * Any closed connection listeners, eg. on worker disconnect (code `255`).
 
-If the server shutdown is too slow, a timeout will eventually trigger an exit (exit code `255`).
+If shutting down one of the servers is too slow, a timeout will eventually trigger an exit (exit code `255`).
 
 The shutdown logic is programmed to handle almost any conceivable exit condition, and provides
 100% test coverage.
@@ -54,10 +54,7 @@ const provision = async () => {
     server.route({
         method: 'GET',
         path: '/',
-        handler() {
-
-            return 'Hello';
-        }
+        handler: () => 'Hello' 
     });
 
     await manager.start();
@@ -83,6 +80,39 @@ server.ext('onPreStop', () => {
 });
 ```
 
+Multiple servers example:
+
+```js
+const Hapi = require('hapi');
+const Exiting = require('exiting');
+
+const publicServer = Hapi.Server();
+const adminServer = Hapi.Server();
+const manager = Exiting.createManager([publicServer, adminServer]);
+
+const provision = async () => {
+
+    publicServer.route({
+        method: 'GET',
+        path: '/',
+        handler: () => 'Hello'
+    });
+
+    adminServer.route({
+        method: 'GET',
+        path: '/',
+        handler: () => 'Hello Admin'
+    });
+
+    await manager.start();
+
+    console.log('Public server started at:', publicServer.info.uri);
+    console.log('Admin server started at:', adminServer.info.uri);
+};
+
+provision();
+```
+
 ## Installation
 
 Install using npm: `npm install exiting`.
@@ -92,22 +122,22 @@ Install using npm: `npm install exiting`.
 To enable **exiting** for you server, replace the call to `server.start()` with
 `Exiting.createManager(server).start()`.
 
-### Exiting.createManager(server, [options])
+### Exiting.createManager(servers, [options])
 
-Create a new exit manager for a hapi.js server. The `options` object supports:
+Create a new exit manager for one or more hapi.js servers. The `options` object supports:
 
  * `exitTimeout` - When exiting, force process exit after this amount of ms has elapsed. Default: `5000`.
 
 ### await manager.start()
 
-Starts the manager and the server, as if `server.start()` is called.
+Starts the manager and all the managed servers, as if `server.start()` is called on each server.
 
 Note that `process.exit()` is monkey patched to intercept such calls.
 Starting also installs the signal handlers and an `uncaughtException` handler.
 
 ### await manager.stop([options])
 
-Stops the manager and the server, as if `server.stop()` is called.
+Stops the manager and all the servers, as if `server.stop()` is called on each server.
 
 ## Notes on process.exit()
 
@@ -123,7 +153,7 @@ while (true) {
 }
 ```
 
-This might not always work, and the server can potentially lock up instead of exiting.
+This might not always work, and can potentially cause a lock up instead of exiting.
 Eg. with this code:
 
 ```js

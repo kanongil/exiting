@@ -96,9 +96,18 @@ describe('Manager', () => {
         await manager.stop();
     });
 
-    it('can restart server', async () => {
+    it('can start and stop with multiple servers', async () => {
 
-        const manager = Exiting.createManager(Hapi.Server());
+        const manager = Exiting.createManager([Hapi.Server(), Hapi.Server(), Hapi.Server()]);
+
+        await manager.start();
+        await Hoek.wait(0);
+        await manager.stop();
+    });
+
+    it('can restart servers', async () => {
+
+        const manager = Exiting.createManager([Hapi.Server(), Hapi.Server(), Hapi.Server()]);
         const exited = grabExit(manager);
 
         await manager.start();
@@ -114,7 +123,7 @@ describe('Manager', () => {
 
     it('supports stop options', async () => {
 
-        const manager = Exiting.createManager(Hapi.Server());
+        const manager = Exiting.createManager([Hapi.Server(), Hapi.Server(), Hapi.Server()]);
 
         await manager.start();
         await manager.stop({ timeout: 5 });
@@ -147,7 +156,7 @@ describe('Manager', () => {
     it('forwards start rejections', async () => {
 
         const server = new Hapi.Server();
-        const manager = new Exiting.Manager(server);
+        const manager = new Exiting.Manager([Hapi.Server(), server, Hapi.Server()]);
 
         server.ext('onPreStart', () => {
 
@@ -160,7 +169,7 @@ describe('Manager', () => {
     it('cancels exit when reset', async () => {
 
         const server = new Hapi.Server();
-        const manager = new Exiting.Manager(server);
+        const manager = new Exiting.Manager([Hapi.Server(), server, Hapi.Server()]);
 
         server.ext('onPreStop', () => {
 
@@ -174,7 +183,7 @@ describe('Manager', () => {
     it('cancels exit when reset after close', async () => {
 
         const server = new Hapi.Server();
-        const manager = new Exiting.Manager(server);
+        const manager = new Exiting.Manager([Hapi.Server(), server, Hapi.Server()]);
         const exited = grabExit(manager);
 
         server.ext('onPostStop', () => {
@@ -190,7 +199,7 @@ describe('Manager', () => {
 
         process.removeAllListeners('uncaughtException');         // Disable lab integration
 
-        const manager = Exiting.createManager(Hapi.Server());
+        const manager = Exiting.createManager([Hapi.Server(), Hapi.Server(), Hapi.Server()]);
         const exited = grabExit(manager, true);
 
         await manager.start();
@@ -211,7 +220,7 @@ describe('Manager', () => {
             process.once('SIGINT', resolve);
         });
 
-        const manager = Exiting.createManager(Hapi.Server());
+        const manager = Exiting.createManager([Hapi.Server(), Hapi.Server(), Hapi.Server()]);
 
         await manager.start();
 
@@ -233,7 +242,7 @@ describe('Manager', () => {
             process.once('SIGHUP', resolve);
         });
 
-        const manager = Exiting.createManager(Hapi.Server());
+        const manager = Exiting.createManager([Hapi.Server(), Hapi.Server(), Hapi.Server()]);
 
         await manager.start();
 
@@ -252,7 +261,7 @@ describe('Manager', () => {
 
         it('on process.exit with code 0', async () => {
 
-            const manager = Exiting.createManager(Hapi.Server());
+            const manager = Exiting.createManager([Hapi.Server(), Hapi.Server(), Hapi.Server()]);
             const exited = grabExit(manager, true);
 
             await manager.start();
@@ -265,7 +274,7 @@ describe('Manager', () => {
 
         it('while starting', async () => {
 
-            const manager = Exiting.createManager(Hapi.Server());
+            const manager = Exiting.createManager([Hapi.Server(), Hapi.Server(), Hapi.Server()]);
             const exited = grabExit(manager);
 
             manager.start();     // No await here
@@ -280,7 +289,7 @@ describe('Manager', () => {
 
         it('on double exit', async () => {
 
-            const manager = Exiting.createManager(Hapi.Server());
+            const manager = Exiting.createManager([Hapi.Server(), Hapi.Server(), Hapi.Server()]);
             const exited = grabExit(manager);
 
             await manager.start();
@@ -316,7 +325,7 @@ describe('Manager', () => {
 
         it('on SIGINT', async () => {
 
-            const manager = Exiting.createManager(Hapi.Server());
+            const manager = Exiting.createManager([Hapi.Server(), Hapi.Server(), Hapi.Server()]);
             const exited = grabExit(manager);
 
             await manager.start();
@@ -329,7 +338,7 @@ describe('Manager', () => {
 
         it('on SIGQUIT', async () => {
 
-            const manager = Exiting.createManager(Hapi.Server());
+            const manager = Exiting.createManager([Hapi.Server(), Hapi.Server(), Hapi.Server()]);
             const exited = grabExit(manager);
 
             await manager.start();
@@ -342,7 +351,7 @@ describe('Manager', () => {
 
         it('on SIGTERM', async () => {
 
-            const manager = Exiting.createManager(Hapi.Server());
+            const manager = Exiting.createManager([Hapi.Server(), Hapi.Server(), Hapi.Server()]);
             const exited = grabExit(manager);
 
             await manager.start();
@@ -358,7 +367,7 @@ describe('Manager', () => {
 
         it('on process.exit with non-zero exit code', async () => {
 
-            const manager = Exiting.createManager(Hapi.Server());
+            const manager = Exiting.createManager([Hapi.Server(), Hapi.Server(), Hapi.Server()]);
             const exited = grabExit(manager, true);
 
             await manager.start();
@@ -373,7 +382,7 @@ describe('Manager', () => {
 
             process.removeAllListeners('uncaughtException');         // Disable lab integration
 
-            const manager = Exiting.createManager(Hapi.Server());
+            const manager = Exiting.createManager([Hapi.Server(), Hapi.Server(), Hapi.Server()]);
             const exited = grabExit(manager, true);
 
             await manager.start();
@@ -391,7 +400,7 @@ describe('Manager', () => {
 
             process.removeAllListeners('uncaughtException');         // Disable lab integration
 
-            const manager = Exiting.createManager(Hapi.Server());
+            const manager = Exiting.createManager([Hapi.Server(), Hapi.Server(), Hapi.Server()]);
             const exited = grabExit(manager, true);
 
             await manager.start();
@@ -409,7 +418,7 @@ describe('Manager', () => {
 
             process.removeAllListeners('uncaughtException');         // Disable lab integration
 
-            const manager = Exiting.createManager(Hapi.Server());
+            const manager = Exiting.createManager([Hapi.Server(), Hapi.Server(), Hapi.Server()]);
             const exited = grabExit(manager, true);
 
             await manager.start();
@@ -428,7 +437,7 @@ describe('Manager', () => {
             process.removeAllListeners('uncaughtException');         // Disable lab integration
 
             const server = new Hapi.Server();
-            const manager = new Exiting.Manager(server);
+            const manager = new Exiting.Manager([Hapi.Server(), server, Hapi.Server()]);
             const exited = grabExit(manager, true);
 
             server.ext('onPreStop', () => {
@@ -449,7 +458,7 @@ describe('Manager', () => {
             process.removeAllListeners('uncaughtException');         // Disable lab integration
 
             const server = new Hapi.Server();
-            const manager = new Exiting.Manager(server);
+            const manager = new Exiting.Manager([Hapi.Server(), server, Hapi.Server()]);
             const exited = grabExit(manager, true);
 
             server.ext('onPostStop', () => {
@@ -467,7 +476,7 @@ describe('Manager', () => {
 
         it('on SIGHUP', async () => {
 
-            const manager = Exiting.createManager(Hapi.Server());
+            const manager = Exiting.createManager([Hapi.Server(), Hapi.Server(), Hapi.Server()]);
             const exited = grabExit(manager, true);
 
             await manager.start();
@@ -481,7 +490,7 @@ describe('Manager', () => {
         it('on server "close"', async () => {
 
             const server = new Hapi.Server();
-            const manager = new Exiting.Manager(server);
+            const manager = new Exiting.Manager([Hapi.Server(), server, Hapi.Server()]);
             const exited = grabExit(manager, true);
 
             await manager.start();
@@ -495,7 +504,7 @@ describe('Manager', () => {
         it('on exit timeout', async () => {
 
             const server = new Hapi.Server();
-            const manager = new Exiting.Manager(server, { exitTimeout: 1 });
+            const manager = new Exiting.Manager([Hapi.Server(), server, Hapi.Server()], { exitTimeout: 1 });
             const exited = grabExit(manager, true);
 
             const preStopped = new Promise((resolve) => {
