@@ -23,7 +23,8 @@ The exit triggers are handled as detailed:
  * Aborted exit:
    * `process.exit()` with non-zero exit code.
    * Unhandled `SIGHUP` kill signal (code `1`).
-   * Any uncaught exception (code `255`).
+   * Any uncaught exception (code `1`).
+   * Any unhandled rejection (code `1`).
    * Any closed connection listeners, eg. on worker disconnect (code `255`).
 
 If shutting down one of the servers is too slow, a timeout will eventually trigger an exit (exit code `255`).

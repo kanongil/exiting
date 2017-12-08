@@ -246,6 +246,22 @@ describe('Manager', () => {
         expect(code).to.equal(0);
     });
 
+    it('unhandledRejection handler ignores ProcessExitErrors', async () => {
+
+        process.removeAllListeners('unhandledRejection');        // Disable lab integration
+
+        const manager = Exiting.createManager([Hapi.Server(), Hapi.Server(), Hapi.Server()]);
+        const exited = grabExit(manager, true);
+
+        await manager.start();
+
+        new Promise((resolve, reject) => reject(new Exiting.ProcessExitError()));
+
+        const { code, state } = await exited.exit(0);
+        expect(state).to.equal('stopped');
+        expect(code).to.equal(0);
+    });
+
     it('does not exit for registered signal handlers', async () => {
 
         const sigint = new Promise((resolve) => {
@@ -426,7 +442,7 @@ describe('Manager', () => {
 
             const { code, state } = await exited;
             expect(state).to.equal('errored');
-            expect(code).to.equal(255);
+            expect(code).to.equal(1);
         });
 
         it('on non-error throw', async () => {
@@ -444,7 +460,7 @@ describe('Manager', () => {
 
             const { code, state } = await exited;
             expect(state).to.equal('errored');
-            expect(code).to.equal(255);
+            expect(code).to.equal(1);
         });
 
         it('on "undefined" throw', async () => {
@@ -462,7 +478,23 @@ describe('Manager', () => {
 
             const { code, state } = await exited;
             expect(state).to.equal('errored');
-            expect(code).to.equal(255);
+            expect(code).to.equal(1);
+        });
+
+        it('on unhandled rejections', async () => {
+
+            process.removeAllListeners('unhandledRejection');        // Disable lab integration
+
+            const manager = Exiting.createManager([Hapi.Server(), Hapi.Server(), Hapi.Server()]);
+            const exited = grabExit(manager, true);
+
+            await manager.start();
+
+            new Promise((resolve, reject) => reject(new Error('unhandled')));
+
+            const { code, state } = await exited;
+            expect(state).to.equal('errored');
+            expect(code).to.equal(1);
         });
 
         it('on thrown errors while prestopping', async () => {
@@ -483,7 +515,7 @@ describe('Manager', () => {
 
             const { code, state } = await exited;
             expect(state).to.equal('errored');
-            expect(code).to.equal(255);
+            expect(code).to.equal(1);
         });
 
         it('on thrown errors while poststopping', async () => {
@@ -504,7 +536,7 @@ describe('Manager', () => {
 
             const { code, state } = await exited;
             expect(state).to.equal('errored');
-            expect(code).to.equal(255);
+            expect(code).to.equal(1);
         });
 
         it('on SIGHUP', async () => {
