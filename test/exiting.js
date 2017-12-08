@@ -92,8 +92,13 @@ describe('Manager', () => {
         const manager = Exiting.createManager(Hapi.Server());
 
         await manager.start();
+
+        expect(manager.state).to.equal('started');
+
         await Hoek.wait(0);
         await manager.stop();
+
+        expect(manager.state).to.equal('stopped');
     });
 
     it('can start and stop with multiple servers', async () => {
@@ -101,8 +106,13 @@ describe('Manager', () => {
         const manager = Exiting.createManager([Hapi.Server(), Hapi.Server(), Hapi.Server()]);
 
         await manager.start();
+
+        expect(manager.state).to.equal('started');
+
         await Hoek.wait(0);
         await manager.stop();
+
+        expect(manager.state).to.equal('stopped');
     });
 
     it('can restart servers', async () => {
@@ -114,7 +124,11 @@ describe('Manager', () => {
         await Hoek.wait(0);
         await manager.stop();
 
+        expect(manager.state).to.equal('stopped');
+
         await manager.start();
+
+        expect(manager.state).to.equal('started');
 
         const { code, state } = await exited.exit(0);
         expect(state).to.equal('stopped');
@@ -126,7 +140,12 @@ describe('Manager', () => {
         const manager = Exiting.createManager([Hapi.Server(), Hapi.Server(), Hapi.Server()]);
 
         await manager.start();
+
+        expect(manager.state).to.equal('started');
+
         await manager.stop({ timeout: 5 });
+
+        expect(manager.state).to.equal('stopped');
     });
 
     it('alerts on unknown exit', async () => {
@@ -155,15 +174,29 @@ describe('Manager', () => {
 
     it('forwards start rejections', async () => {
 
-        const server = new Hapi.Server();
-        const manager = new Exiting.Manager([Hapi.Server(), server, Hapi.Server()]);
+        const servers = [Hapi.Server(), Hapi.Server(), Hapi.Server()];
+        const manager = new Exiting.Manager(servers);
 
-        server.ext('onPreStart', () => {
+        let stops = 0;
+        servers.forEach((server) => {
+
+            server.events.on('stop', () => ++stops);
+        });
+
+        servers[1].ext('onPreStart', () => {
 
             throw new Error('start fail');
         });
 
+        servers[2].ext('onPostStop', () => {
+
+            throw new Error('stop fail');
+        });
+
         await expect(manager.start()).to.reject(Error, 'start fail');
+
+        expect(manager.state).to.equal('errored');
+        expect(stops).to.equal(3);
     });
 
     it('cancels exit when reset', async () => {

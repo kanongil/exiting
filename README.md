@@ -131,6 +131,7 @@ Create a new exit manager for one or more hapi.js servers. The `options` object 
 ### await manager.start()
 
 Starts the manager and all the managed servers, as if `server.start()` is called on each server.
+If any server fails to start, all will be stopped with `server.stop()` before the error is re-thrown.
 
 Note that `process.exit()` is monkey patched to intercept such calls.
 Starting also installs the signal handlers and an `uncaughtException` handler.

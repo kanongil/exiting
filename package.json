@@ -15,6 +15,7 @@
     "lab": "^15.0.0"
   },
   "dependencies": {
+    "bounce": "^1.2.0",
     "hoek": "^5.0.0"
   },
   "peerDependencies": {
