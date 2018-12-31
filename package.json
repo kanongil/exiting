@@ -12,11 +12,11 @@
   "devDependencies": {
     "code": "^5.1.0",
     "hapi": "^17.0.0",
-    "lab": "^15.0.0"
+    "lab": "^18.0.1"
   },
   "dependencies": {
     "bounce": "^1.2.0",
-    "hoek": "^5.0.0"
+    "hoek": "^6.1.2"
   },
   "peerDependencies": {
     "hapi": ">=17.0.0"

@@ -56,16 +56,25 @@ describe('Manager', () => {
         return promise;
     };
 
+    const ignoreProcessExitError = (err) => {
+
+        if (err instanceof Exiting.ProcessExitError) {
+            return;
+        }
+
+        throw err;
+    };
+
     lab.before(() => {
 
         // Silence log messages
 
         const log = Exiting.log;
-        Exiting.log = function () {
+        Exiting.log = function (...args) {
 
             const consoleError = console.error;
             console.error = Hoek.ignore;
-            log.apply(Exiting, arguments);
+            log.apply(Exiting, args);
             console.error = consoleError;
         };
     });
@@ -228,9 +237,7 @@ describe('Manager', () => {
         exited.exit(0);
     });
 
-    it('uncaughtException handler ignores ProcessExitErrors', async () => {
-
-        process.removeAllListeners('uncaughtException');         // Disable lab integration
+    it('uncaughtException handler ignores ProcessExitErrors', async (flags) => {
 
         const manager = Exiting.createManager([Hapi.Server(), Hapi.Server(), Hapi.Server()]);
         const exited = grabExit(manager, true);
@@ -239,6 +246,7 @@ describe('Manager', () => {
 
         // Immitate a throw by faking an uncaughtException
 
+        flags.onUncaughtException = ignoreProcessExitError;
         process.emit('uncaughtException', new Exiting.ProcessExitError());
 
         const { code, state } = await exited.exit(0);
@@ -246,16 +254,22 @@ describe('Manager', () => {
         expect(code).to.equal(0);
     });
 
-    it('unhandledRejection handler ignores ProcessExitErrors', async () => {
-
-        process.removeAllListeners('unhandledRejection');        // Disable lab integration
+    it('unhandledRejection handler ignores ProcessExitErrors', async (flags) => {
 
         const manager = Exiting.createManager([Hapi.Server(), Hapi.Server(), Hapi.Server()]);
         const exited = grabExit(manager, true);
 
         await manager.start();
 
-        new Promise((resolve, reject) => reject(new Exiting.ProcessExitError()));
+        await new Promise((resolve, reject) => {
+
+            flags.onUnhandledRejection = (err) => {
+
+                (err instanceof Exiting.ProcessExitError) ? resolve() : reject(err);
+            };
+
+            Promise.reject(new Exiting.ProcessExitError());
+        });
 
         const { code, state } = await exited.exit(0);
         expect(state).to.equal('stopped');
