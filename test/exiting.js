@@ -590,5 +590,20 @@ describe('Manager', () => {
 
             expect(await preStopped).to.equal('timeout');
         });
+
+        it('on double exit with error', async () => {
+
+            const manager = Exiting.createManager([Hapi.Server(), Hapi.Server(), Hapi.Server()]);
+            const exited = grabExit(manager);
+
+            await manager.start();
+            await Hoek.wait(0);
+            exited.exit(0);
+            exited.exit(1);
+
+            const { code, state } = await exited;
+            expect(state).to.equal('errored');
+            expect(code).to.equal(1);
+        });
     });
 });
