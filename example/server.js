@@ -1,7 +1,7 @@
 'use strict';
 
-const Exiting = require('../lib');
-const Hapi = require('hapi');
+const Exiting = require('exiting');
+const Hapi = require('@hapi/hapi');
 
 const server = Hapi.Server();
 const manager = Exiting.createManager(server);

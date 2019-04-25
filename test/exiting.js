@@ -2,11 +2,11 @@
 
 // Load modules
 
-const Code = require('code');
-const Exiting = require('../lib');
-const Hapi = require('hapi');
-const Hoek = require('hoek');
-const Lab = require('lab');
+const Code = require('@hapi/code');
+const Exiting = require('..');
+const Hapi = require('@hapi/hapi');
+const Hoek = require('@hapi/hoek');
+const Lab = require('@hapi/lab');
 
 
 // Declare internals
