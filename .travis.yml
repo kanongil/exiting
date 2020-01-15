@@ -17,4 +17,4 @@ env:
 jobs:
   exclude:
     - node_js: "12"
-      env: HAPI_VERSION="19"s
+      env: HAPI_VERSION="19"
