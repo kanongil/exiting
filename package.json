@@ -10,19 +10,19 @@
   "author": "Gil Pedersen <gpdev@gpost.dk>",
   "license": "BSD-2-Clause",
   "devDependencies": {
-    "@hapi/code": "^7.0.0",
-    "@hapi/hapi": "^18.4.0",
-    "@hapi/lab": "^21.0.0"
+    "@hapi/code": "^8.0.1",
+    "@hapi/hapi": "^19.0.4",
+    "@hapi/lab": "^22.0.3"
   },
   "dependencies": {
-    "@hapi/bounce": "^1.3.0",
-    "@hapi/hoek": "^8.3.2"
+    "@hapi/bounce": "^2.0.0",
+    "@hapi/hoek": "^9.0.2"
   },
   "peerDependencies": {
     "@hapi/hapi": ">=17.9.0"
   },
   "engines": {
-    "node": ">=10.13.0"
+    "node": ">=12.13.0"
   },
   "repository": {
     "type": "git",
