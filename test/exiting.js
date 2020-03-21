@@ -2,6 +2,8 @@
 
 // Load modules
 
+const Events = require('events');
+
 const Code = require('@hapi/code');
 const Exiting = require('..');
 const Hapi = require('@hapi/hapi');
@@ -9,16 +11,11 @@ const Hoek = require('@hapi/hoek');
 const Lab = require('@hapi/lab');
 
 
-// Declare internals
-
-const internals = {};
-
-
 // Test shortcuts
 
 const lab = exports.lab = Lab.script();
-const { describe, it } = lab;
-const expect = Code.expect;
+const { describe, it, before, beforeEach, afterEach } = lab;
+const { expect } = Code;
 
 
 describe('Manager', () => {
@@ -65,7 +62,7 @@ describe('Manager', () => {
         throw err;
     };
 
-    lab.before(() => {
+    before(() => {
 
         // Silence log messages
 
@@ -79,12 +76,12 @@ describe('Manager', () => {
         };
     });
 
-    lab.beforeEach(() => {
+    beforeEach(() => {
 
         Exiting.reset();
     });
 
-    lab.afterEach(() => {
+    afterEach(() => {
 
         process.exit = processExit;
     });
@@ -278,11 +275,7 @@ describe('Manager', () => {
 
     it('does not exit for registered signal handlers', async () => {
 
-        const sigint = new Promise((resolve) => {
-
-            process.once('SIGINT', resolve);
-        });
-
+        const sigint = Events.once(process, 'SIGINT');
         const manager = Exiting.createManager([Hapi.Server(), Hapi.Server(), Hapi.Server()]);
 
         await manager.start();
@@ -300,11 +293,7 @@ describe('Manager', () => {
 
     it('does not exit for registered aborting signal handlers', async () => {
 
-        const sighub = new Promise((resolve) => {
-
-            process.once('SIGHUP', resolve);
-        });
-
+        const sighub = Events.once(process, 'SIGHUP');
         const manager = Exiting.createManager([Hapi.Server(), Hapi.Server(), Hapi.Server()]);
 
         await manager.start();
@@ -318,6 +307,36 @@ describe('Manager', () => {
         await Hoek.wait(1);
 
         expect(manager.state).to.equal('started');
+    });
+
+    it('can deactivate', async () => {
+
+        const manager = Exiting.createManager(Hapi.Server());
+        await manager.start();
+
+        expect(process.listenerCount('exit')).to.equal(1);
+        expect(manager.active).to.be.true();
+
+        manager.deactivate();
+        expect(process.listenerCount('exit')).to.equal(0);
+        expect(manager.active).to.be.false();
+    });
+
+    it('deactivate does nothing after reset', async () => {
+
+        const manager = Exiting.createManager(Hapi.Server());
+        await manager.start();
+
+        expect(process.listenerCount('exit')).to.equal(1);
+        expect(manager.active).to.be.true();
+
+        Exiting.reset();
+        expect(process.listenerCount('exit')).to.equal(0);
+        expect(manager.active).to.be.false();
+
+        manager.deactivate();
+        expect(process.listenerCount('exit')).to.equal(0);
+        expect(manager.active).to.be.false();
     });
 
     describe('exits gracefully', () => {
