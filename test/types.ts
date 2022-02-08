@@ -1,29 +1,34 @@
-import { Server } from '@hapi/hapi';
-import { ExitingManagerOptions, createManager, Manager, ProcessExitError } from '..';
+import * as Hapi from '@hapi/hapi';
+import * as Lab from '@hapi/lab';
+import * as Exiting from '..';
 
-(async () => {
+const { expect } = Lab.types;
 
-    const manager = createManager(new Server, {
-        exitTimeout: 30 * 1000
-    });
+const manager = Exiting.createManager(new Hapi.Server(), {
+    exitTimeout: 30 * 1000
+});
 
+expect.type<Exiting.Manager<Hapi.Server>>(manager);
 
-    const x = new ProcessExitError();
+expect.type<TypeError>(new Exiting.ProcessExitError());
 
-    if (x instanceof TypeError) {
+await manager.start();
+await manager.stop();
 
-        console.log('error!');
-    }
+manager.deactivate();
 
-    await manager.start();
-    await manager.stop();
+const options: Exiting.ManagerOptions = {
+    exitTimeout: 30 * 1000
+};
 
-    await manager.deactive();
+new Exiting.Manager(new Hapi.Server(), options);
+Exiting.reset();
 
+expect.error(new Exiting.Manager(new Hapi.Server(), { unknown: true }));
+Exiting.reset();
 
-    const options: ExitingManagerOptions = {
-        exitTimeout: 30 * 1000
-    };
+new Exiting.Manager(new Hapi.Server());
+Exiting.reset();
 
-    const manager2 = new Manager(new Server, options);
-})()
+expect.error(new Exiting.Manager());
+Exiting.reset();

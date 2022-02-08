@@ -14,7 +14,7 @@ const Lab = require('@hapi/lab');
 // Test shortcuts
 
 const lab = exports.lab = Lab.script();
-const { describe, it, before, beforeEach, afterEach } = lab;
+const { describe, it, before, beforeEach, after, afterEach } = lab;
 const { expect } = Code;
 
 
@@ -79,6 +79,12 @@ describe('Manager', () => {
     beforeEach(() => {
 
         Exiting.reset();
+    });
+
+    after(() => {
+
+        Exiting.reset();
+        process.exit = processExit;
     });
 
     afterEach(() => {

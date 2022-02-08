@@ -1,65 +1,78 @@
-@@ -1,64 +0,0 @@
-import { Server } from '@hapi/hapi';
+import * as http from 'http';
 
-export interface ExitingManagerOptions {
-    exitTimeout: number
+// We can't use the DT @hapi/hapi typings, so declare something that matches what we use
+
+interface HapiServerInterface {
+
+    start(...args: any[]): Promise<any>;
+
+    stop(options?: {}, ...args: any[]): Promise<any>;
+
+    ext(...args: any[]): any;
+
+    listener: http.Server;
 }
 
-export class Manager<S = Server | Server[], O = ExitingManagerOptions> {
+export interface ManagerOptions {
 
+    /**
+     * In milliseconds. Default 5000.
+     */
     exitTimeout: number;
-    servers: Server[];
-    state: 'starting' | 'started' | 'stopping' | 'prestopped' | 'stopped' | 'startAborted' | 'errored' | 'timeout';
-    exitTimer: number;
-    exitCode: number;
-    active: boolean
+}
 
-    constructor(servers: S, options: O)
+export class Manager<S extends HapiServerInterface> {
+
+    readonly servers: readonly Omit<S, 'stop' | 'start'>[];
+    readonly state?: 'starting' | 'started' | 'stopping' | 'prestopped' | 'stopped' | 'startAborted' | 'errored' | 'timeout';
+
+    constructor(servers: S | Iterable<S>, options?: ManagerOptions);
 
     /**
      * Starts the Hapi servers.
+     * 
      * Returns manager if the server starts succcessfully.
      */
-    start(): Promise<Manager | void>
+    start(): Promise<this | void>;
 
     /**
      * Stops the Hapi servers.
-     * Throws if any server fails to stop.
+     * 
+     * Rejects if any server fails to stop.
      */
-    stop(): Promise<Error | void>
+    stop(): Promise<void>;
 
     /**
-     * Removes process listeners and resets process exit
+     * Removes process listeners and resets process exit.
      */
-    deactive(): Promise<void>
+    deactivate(): void;
 }
 
 /**
- * Creates a new manager for given servers
+ * Creates a new manager for given servers.
+ * 
  * @param servers
  * @param options
  */
-export function createManager <
-    S = Server | Server[],
-    O = ExitingManagerOptions
->(
-    servers: S,
-    options: O
-): Manager<S, O>
+export function createManager<S extends HapiServerInterface>(
+    servers: S | Iterable<S>,
+    options?: ManagerOptions
+): Manager<S>;
 
 /**
- * Console.error helper
+ * Console.error helper.
+ * 
  * @param args log arguments
  */
-export function log (...args: any[]): void;
+export function log(...args: any[]): void;
 
 /**
- * Deactivates the existing manager
+ * Deactivates the existing manager.
  */
-export function reset(): void
+export function reset(): void;
 
 /**
- * Custom exiting error thrown when process.exit() is called
+ * Custom exiting error thrown when process.exit() is called.
  */
-export class ProcessExitError extends TypeError {}
-
+export class ProcessExitError extends TypeError {
+}

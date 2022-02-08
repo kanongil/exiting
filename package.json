@@ -4,7 +4,7 @@
   "description": "Gracefully stop hapi.js servers",
   "main": "lib/index.js",
   "scripts": {
-    "test": "lab -a @hapi/code -t 100 -L",
+    "test": "lab -a @hapi/code -t 100 -L -Y",
     "test-cov-html": "lab -a @hapi/code -r html -o coverage.html"
   },
   "types": "lib/index.d.ts",
