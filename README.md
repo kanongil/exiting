@@ -2,7 +2,7 @@
 
 Safely shutdown [hapi.js](http://hapijs.com/) servers whenever the process exits.
 
-[![Build Status](https://travis-ci.org/kanongil/exiting.svg?branch=master)](https://travis-ci.org/kanongil/exiting)
+[![Node.js CI](https://github.com/kanongil/exiting/actions/workflows/ci.yaml/badge.svg?branch=master)](https://github.com/kanongil/exiting/actions/workflows/ci.yaml)
 
 ## Details
 
