@@ -1,3 +1,4 @@
+@@ -1,64 +0,0 @@
 import { Server } from '@hapi/hapi';
 
 export interface ExitingManagerOptions {
