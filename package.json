@@ -11,8 +11,8 @@
   "license": "BSD-2-Clause",
   "devDependencies": {
     "@hapi/code": "^8.0.1",
-    "@hapi/hapi": "^19.0.4",
-    "@hapi/lab": "^22.0.3"
+    "@hapi/hapi": "^20.2.1",
+    "@hapi/lab": "^24.5.1"
   },
   "dependencies": {
     "@hapi/bounce": "^2.0.0",
