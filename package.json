@@ -11,21 +11,22 @@
   "author": "Gil Pedersen <gpdev@gpost.dk>",
   "license": "BSD-2-Clause",
   "devDependencies": {
-    "@hapi/code": "^8.0.1",
-    "@hapi/hapi": "^20.2.1",
-    "@hapi/lab": "^24.5.1",
-    "@types/hapi__hapi": "^20.0.10",
-    "typescript": "^4.5.5"
+    "@hapi/code": "^9.0.3",
+    "@hapi/hapi": "^21.3.6",
+    "@hapi/lab": "^25.2.0",
+    "@types/node": "^18.19.24",
+    "joi": "^17.12.2",
+    "typescript": "~5.4.2"
   },
   "dependencies": {
-    "@hapi/bounce": "^2.0.0",
-    "@hapi/hoek": "^9.0.2"
+    "@hapi/bounce": "^3.0.1",
+    "@hapi/hoek": "^11.0.4"
   },
   "peerDependencies": {
-    "@hapi/hapi": ">=17.9.0"
+    "@hapi/hapi": ">=21.0.0"
   },
   "engines": {
-    "node": ">=12.13.0"
+    "node": ">=18.12.0"
   },
   "repository": {
     "type": "git",

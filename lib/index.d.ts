@@ -1,6 +1,6 @@
 import * as http from 'http';
 
-// We can't use the DT @hapi/hapi typings, so declare something that matches what we use
+// We can't rely on the @hapi/hapi typings, so declare something that matches what we use
 
 interface HapiServerInterface {
 

@@ -11,17 +11,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['*', 16, 14, 12]
-        hapi: [20, 19, 18, 17]
+        node-version: [18, 20, latest]
+        hapi: [21]
 
     runs-on: ubuntu-latest
     name: Test node@${{ matrix.node }} hapi@${{ matrix.hapi }}
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-node@v2
+    - uses: actions/checkout@v4
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
-        check-latest: ${{ matrix.node-version == '*' }}
-    - run: npm install
+        check-latest: ${{ matrix.node-version == 'latest' }}
+    - run: npm ci
     - run: npm install @hapi/hapi@${{ matrix.hapi }}
+    - run: npm run build --if-present
     - run: npm test
