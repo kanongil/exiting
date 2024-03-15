@@ -15,11 +15,11 @@ jobs:
         hapi: [21]
 
     runs-on: ubuntu-latest
-    name: Test node@${{ matrix.node }} hapi@${{ matrix.hapi }}
+    name: Test node@${{ matrix.node-version }} hapi@${{ matrix.hapi }}
     steps:
     - uses: actions/checkout@v4
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
         check-latest: ${{ matrix.node-version == 'latest' }}
