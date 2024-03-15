@@ -1,6 +1,6 @@
 {
   "name": "exiting",
-  "version": "6.1.0",
+  "version": "7.0.0",
   "description": "Gracefully stop hapi.js servers",
   "main": "lib/index.js",
   "scripts": {
