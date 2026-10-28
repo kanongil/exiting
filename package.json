@@ -13,20 +13,21 @@
   "devDependencies": {
     "@hapi/code": "^9.0.3",
     "@hapi/hapi": "^21.3.6",
-    "@hapi/lab": "^25.2.0",
-    "@types/node": "^18.19.24",
-    "joi": "^17.12.2",
-    "typescript": "~5.4.2"
+    "@hapi/lab": "^26.0.1",
+    "@types/node": "^24.19.2",
+    "joi": "^18.3.1",
+    "typescript": "npm:@typescript/typescript6@^6.0.2"
   },
   "dependencies": {
     "@hapi/bounce": "^3.0.1",
-    "@hapi/hoek": "^11.0.4"
+    "@hapi/hoek": "^11.0.4",
+    "eslint": "^10.13.0"
   },
   "peerDependencies": {
     "@hapi/hapi": ">=21.0.0"
   },
   "engines": {
-    "node": ">=18.12.0"
+    "node": ">=24.11.0"
   },
   "repository": {
     "type": "git",
