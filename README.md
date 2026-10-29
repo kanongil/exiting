@@ -141,6 +141,8 @@ Starting also installs the signal handlers and an `uncaughtException` handler.
 
 Stops the manager and all the servers, as if `server.stop()` is called on each server.
 
+This method is called implicitly with `exitTimeout` when exiting an `await using manager` scope.
+
 ## Notes on process.exit()
 
 The `process.exit()` method is handled in a special manner that allows the asyncronous stop

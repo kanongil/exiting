@@ -21,7 +21,7 @@ export interface ManagerOptions {
     exitTimeout: number;
 }
 
-export class Manager<S extends HapiServerInterface> {
+export class Manager<S extends HapiServerInterface> implements AsyncDisposable {
 
     readonly servers: readonly Omit<S, 'stop' | 'start'>[];
     readonly state?: 'starting' | 'started' | 'stopping' | 'prestopped' | 'stopped' | 'startAborted' | 'errored' | 'timeout';
@@ -33,7 +33,7 @@ export class Manager<S extends HapiServerInterface> {
      * 
      * Returns manager if the server starts succcessfully.
      */
-    start(): Promise<this | void>;
+    start(): Promise<this>;
 
     /**
      * Stops the Hapi servers.
@@ -46,6 +46,11 @@ export class Manager<S extends HapiServerInterface> {
      * Removes process listeners and resets process exit.
      */
     deactivate(): void;
+
+    /**
+     * Support stopping server when bound to a scope with `await using`.
+     */
+    [Symbol.asyncDispose](): Promise<void>;
 }
 
 /**

@@ -15,6 +15,11 @@ expect.type<TypeError>(new Exiting.ProcessExitError());
 await manager.start();
 await manager.stop();
 
+await (async () => {
+
+    await using _ = await manager.start();
+})();
+
 manager.deactivate();
 
 const options: Exiting.ManagerOptions = {

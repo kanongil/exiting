@@ -127,6 +127,35 @@ describe('Manager', () => {
         expect(manager.state).to.equal('stopped');
     });
 
+    it('can implicitly stop when await using', async () => {
+
+        const manager = Exiting.createManager([Hapi.Server(), Hapi.Server(), Hapi.Server()]);
+        {
+            await using tracked = await manager.start();
+
+            expect(tracked.state).to.equal('started');
+            expect(manager.state).to.equal('started');
+        }
+
+        expect(manager.state).to.equal('stopped');
+    });
+
+    it('can stop normally when await using', async () => {
+
+        const manager = Exiting.createManager([Hapi.Server(), Hapi.Server(), Hapi.Server()]);
+        {
+            await using tracked = await manager.start();
+
+            expect(tracked.state).to.equal('started');
+
+            await tracked.stop();
+
+            expect(tracked.state).to.equal('stopped');
+        }
+
+        expect(manager.state).to.equal('stopped');
+    });
+
     it('can restart servers', async () => {
 
         const manager = Exiting.createManager([Hapi.Server(), Hapi.Server(), Hapi.Server()]);
